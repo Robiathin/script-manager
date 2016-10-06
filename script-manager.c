@@ -629,13 +629,41 @@ echo_script(void)
 		return 2;
 	}
 	snprintf(script, script_len, "%s/%d", script_path, script_id);
-	int res = print_file(script);
-	free(script);
-	if (res) {
-		fprintf(stderr, "Error opening file!\n");
-		return 1;
+	int err = 0;
+	if (!isatty(STDOUT_FILENO)) {
+		if (print_file(script)) {
+			fprintf(stderr, "Error opening file!\n");
+			err = 1;
+		}
+	} else {
+		pid_t pid;
+		int p[2];
+		if (pipe(p)) {
+			fprintf(stderr, "Error opening pipe!\n");
+			err = 1;
+		} else {
+			if ((pid = fork()) == -1) {
+				fprintf(stderr, "Failed to fork!\n");
+				err = 1;
+			} else if (pid == 0) {
+				close(p[0]);
+				dup2(p[1], STDOUT_FILENO);
+				close(p[1]);
+				if (print_file(script)) {
+					fprintf(stderr, "Error opening file!\n");
+					err = 1;
+				}
+			} else {
+				char *pager_args[] = { "less", NULL };
+				close(p[1]);
+				dup2(p[0], STDIN_FILENO);
+				close(p[0]);
+				execvp(pager_args[0], pager_args);
+			}
+		}
 	}
-	return 0;
+	free(script);
+	return err;
 }
 
 static int

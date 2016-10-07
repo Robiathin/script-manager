@@ -686,8 +686,10 @@ search_script(void)
 
 	if (isatty(STDOUT_FILENO) && args.page) {
 		if (pipe(p)) {
+			fprintf(stderr, "Error opening pipe!\n");
 			err = 1;
 		} else if ((pid = fork()) == -1) {
+			fprintf(stderr, "Error forking!\n");
 			err = 1;
 		} else if (pid == 0) {
 			close(p[0]);
@@ -813,8 +815,10 @@ list_script(void)
 
 	if (isatty(STDOUT_FILENO) || args.page) {
 		if (pipe(p)) {
+			fprintf(stderr, "Error opening pipe!\n");
 			err = 1;
 		} else if ((pid = fork()) == -1) {
+			fprintf(stderr, "Error forking!\n");
 			err = 1;
 		} else if (pid == 0) {
 			close(p[0]);

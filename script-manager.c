@@ -684,7 +684,7 @@ search_script(void)
 	pid_t pid;
 	int p[2];
 
-	if (isatty(STDOUT_FILENO) && args.page) {
+	if (!isatty(STDOUT_FILENO) || args.page) {
 		if (pipe(p)) {
 			fprintf(stderr, "Error opening pipe!\n");
 			err = 1;
@@ -813,7 +813,7 @@ list_script(void)
 	pid_t pid;
 	int p[2];
 
-	if (isatty(STDOUT_FILENO) || args.page) {
+	if (!isatty(STDOUT_FILENO) || args.page) {
 		if (pipe(p)) {
 			fprintf(stderr, "Error opening pipe!\n");
 			err = 1;

@@ -40,19 +40,24 @@ main(int argc, char * const *argv)
 	args.name = NULL;
 	args.file = NULL;
 	args.description = NULL;
+	args.page = 1;
 	args.arg_size = 0;
 	args.arguments = NULL;
 	args.remove_file = -1;
+
 	atexit(exit_cleanup);
+
 	int error = 0;
 	char option;
-	while ((option = getopt(argc, argv,"ad:e:E:hkKlr:svA:n:f:D:")) != -1) {
+
+	while ((option = getopt(argc, argv,"ad:e:E:hkKlpPr:svA:n:f:D:")) != -1) {
 		switch (option) {
 		case 'a': /* ADD */
 			if (args.mode == NOT_SET)
 				args.mode = ADD;
 			else
 				error = 1;
+
 			break;
 		case 'd': /* DELETE */
 			if (args.mode == NOT_SET) {
@@ -61,10 +66,12 @@ main(int argc, char * const *argv)
 				error = 1;
 				break;
 			}
+
 			if (args.name == NULL)
 				args.name = optarg;
 			else
 				error = 1;
+
 			break;
 		case 'e': /* EXECUTE */
 			if (args.mode == NOT_SET) {
@@ -73,10 +80,12 @@ main(int argc, char * const *argv)
 				error = 1;
 				break;
 			}
+
 			if (args.name == NULL)
 				args.name = optarg;
 			else
 				error = 1;
+
 			break;
 		case 'E': /* ECHO */
 			if (args.mode == NOT_SET) {
@@ -85,34 +94,46 @@ main(int argc, char * const *argv)
 				error = 1;
 				break;
 			}
+
 			if (args.name == NULL)
 				args.name = optarg;
 			else
 				error = 1;
+
 			break;
 		case 'h': /* HELP */
 			if (args.mode == NOT_SET)
 				args.mode = HELP;
 			else
 				error = 1;
+
 			break;
 		case 'k': /* KEEP FILE */
 			if (args.remove_file == -1)
 				args.remove_file = 0;
 			else
 				error = 1;
+
 			break;
 		case 'K': /* DON'T KEEP FILE */
 			if (args.remove_file == -1)
 				args.remove_file = 1;
 			else
 				error = 1;
+
 			break;
 		case 'l':
 			if (args.mode == NOT_SET)
 				args.mode = LIST;
 			else
 				error = 1;
+
+			break;
+		case 'p': /* DON'T PAGE */
+			args.page = 0;
+			break;
+		case 'P': /* PAGE */
+			args.page = 1;
 			break;
 		case 'r': /* REPLACE */
 			if (args.mode == NOT_SET) {
@@ -121,10 +142,12 @@ main(int argc, char * const *argv)
 				error = 1;
 				break;
 			}
+
 			if (args.name == NULL)
 				args.name = optarg;
 			else
 				error = 1;
+
 			break;
 		case 's': /* SEARCH */
 			if (args.mode == NOT_SET)
@@ -143,12 +166,14 @@ main(int argc, char * const *argv)
 				args.arguments = malloc(sizeof(char *));
 			else
 				args.arguments = realloc(args.arguments, (args.arg_size + 1) * sizeof(char *));
+
 			if (args.arguments == NULL) {
 				error = 2;
 			} else {
 				args.arguments[args.arg_size] = optarg;
 				args.arg_size++;
 			}
+
 			break;
 		case 'n': /* NAME */
 			args.name = optarg;
@@ -612,7 +637,6 @@ search_script(void)
 	sqlite3_stmt *search_stmt = NULL;
 
 	if (args.name != NULL && args.description != NULL) {
-
 		if (sqlite3_prepare_v2(db, "SELECT * FROM " SCRIPT_TABLE " WHERE instr(name, ?) > 0 AND instr(description, ?) > 0;",
 		    -1, &search_stmt, NULL) != SQLITE_OK) {
 			fprintf(stderr, "SQLite error!");
@@ -655,21 +679,48 @@ search_script(void)
 			return 1;
 		}
 	}
-	for (;;) {
-		int result = sqlite3_step(search_stmt);
-		if (result == SQLITE_ROW) {
-			printf("id: %d\nname: %s\ndescription: %s\n", sqlite3_column_int(search_stmt, 0),
-			    sqlite3_column_text(search_stmt, 1), sqlite3_column_text(search_stmt, 2));
-		} else if (result == SQLITE_DONE) {
-			break;
+
+	int err = 0;
+	pid_t pid;
+	int p[2];
+
+	if (isatty(STDOUT_FILENO) && args.page) {
+		if (pipe(p)) {
+			err = 1;
+		} else if ((pid = fork()) == -1) {
+			err = 1;
+		} else if (pid == 0) {
+			close(p[0]);
+			dup2(p[1], STDOUT_FILENO);
+			close(p[1]);
 		} else {
-			sqlite3_finalize(search_stmt);
-			fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
-			return 1;
+			char *pager_args[] = { "less", NULL };
+			close(p[1]);
+			dup2(p[0], STDIN_FILENO);
+			close(p[0]);
+			execvp(pager_args[0], pager_args);
 		}
 	}
+
+	if (!err)
+		for (;;) {
+			int result = sqlite3_step(search_stmt);
+
+			if (result == SQLITE_ROW) {
+				printf("id: %d\nname: %s\ndescription: %s\n\n", sqlite3_column_int(search_stmt, 0),
+				sqlite3_column_text(search_stmt, 1), sqlite3_column_text(search_stmt, 2));
+			} else if (result == SQLITE_DONE) {
+				break;
+			} else {
+				sqlite3_finalize(search_stmt);
+				fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+				err = 1;
+				break;
+			}
+		}
+
 	sqlite3_finalize(search_stmt);
-	return 0;
+	return err;
 }
 
 static int
@@ -716,7 +767,7 @@ echo_script(void)
 	snprintf(script, script_len, "%s/%d", script_path, script_id);
 	int err = 0;
 
-	if (!isatty(STDOUT_FILENO)) {
+	if (!isatty(STDOUT_FILENO) || !args.page) {
 		if (print_file(script)) {
 			fprintf(stderr, "Error opening file!\n");
 			err = 1;
@@ -756,12 +807,34 @@ echo_script(void)
 static int
 list_script(void)
 {
-	if (sqlite3_exec(db, "SELECT * FROM " SCRIPT_TABLE ";", list_script_callback, 0, NULL)) {
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
-		return 1;
+	int err = 0;
+	pid_t pid;
+	int p[2];
+
+	if (isatty(STDOUT_FILENO) || args.page) {
+		if (pipe(p)) {
+			err = 1;
+		} else if ((pid = fork()) == -1) {
+			err = 1;
+		} else if (pid == 0) {
+			close(p[0]);
+			dup2(p[1], STDOUT_FILENO);
+			close(p[1]);
+		} else {
+			char *pager_args[] = { "less", NULL };
+			close(p[1]);
+			dup2(p[0], STDIN_FILENO);
+			close(p[0]);
+			execvp(pager_args[0], pager_args);
+		}
 	}
 
-	return 0;
+	if (sqlite3_exec(db, "SELECT * FROM " SCRIPT_TABLE ";", list_script_callback, 0, NULL)) {
+		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		err = 1;
+	}
+
+	return err;
 }
 
 static int

@@ -43,6 +43,7 @@ struct arg_options {
 	char *name;
 	char *file;
 	char *description;
+	int page;
 	size_t arg_size;
 	char **arguments;
 	int remove_file;

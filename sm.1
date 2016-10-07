@@ -12,7 +12,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: September 19 2016 $
+.Dd $Mdocdate: October 06 2016 $
 .Dt SM 1
 .Sh NAME
 .Nm sm
@@ -25,6 +25,8 @@
 .Op Fl E Ar name
 .Op Fl h
 .Op Fl l
+.Op Fl p
+.Op Fl P
 .Op Fl r Ar name Fl f Ar file
 .Op Fl s Op Fl n Ar name Fl D Ar description
 .Op Fl v
@@ -48,6 +50,10 @@ Echo a stored script to standard out. The output can be redirected to a file to 
 Print a message showing usage information.
 .It Fl l
 List all scripts
+.It Fl p
+Disable output paging
+.It Fl P
+Enable paging of output (enabled by default)
 .It Fl r Ar name Fl f Ar file
 Repace the file associated with the name specified.
 .It Fl s Op Fl n Ar name Fl D Ar description

@@ -50,7 +50,7 @@ main(int argc, char * const *argv)
 	int error = 0;
 	char option;
 
-	while ((option = getopt(argc, argv,"ad:e:E:hkKlpPr:svA:n:f:D:")) != -1) {
+	while ((option = getopt(argc, argv,"ad:e:E:hkKlpPr:svV:A:n:f:D:")) != -1) {
 		switch (option) {
 		case 'a': /* ADD */
 			if (args.mode == NOT_SET)
@@ -184,6 +184,18 @@ main(int argc, char * const *argv)
 		case 'D': /* DESCRIPTION */
 			args.description = optarg;
 			break;
+		case 'V': /* EDIT */
+			if (args.mode == NOT_SET)
+				args.mode = EDIT;
+			else
+				error = 1;
+
+			if (args.name == NULL)
+				args.name = optarg;
+			else
+				error = 1;
+
+			break;
 		default:
 			error = 1;
 		}
@@ -218,6 +230,8 @@ main(int argc, char * const *argv)
 		return execute_script();
 	case ECHO:
 		return echo_script();
+	case EDIT:
+		return edit_script();
 	case LIST:
 		return list_script();
 	case REPLACE:
@@ -306,6 +320,10 @@ validate_args(void)
 		return 1;
 
 	if (args.mode == ECHO && (args.name == NULL || args.file != NULL
+	    || args.description != NULL || args.arguments != NULL))
+		return 1;
+
+	if (args.mode == EDIT && (args.name == NULL || args.file != NULL
 	    || args.description != NULL || args.arguments != NULL))
 		return 1;
 
@@ -804,6 +822,62 @@ echo_script(void)
 	}
 	free(script);
 	return err;
+}
+
+static int
+edit_script(void)
+{
+	sqlite3_stmt *edit_stmt = NULL;
+
+	if (sqlite3_prepare_v2(db, "SELECT id FROM " SCRIPT_TABLE " WHERE name = ?;",
+	    -1, &edit_stmt, NULL) != SQLITE_OK) {
+		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		return 1;
+	}
+
+	if (sqlite3_bind_text(edit_stmt, 1, args.name, strlen(args.name), NULL) != SQLITE_OK) {
+		sqlite3_finalize(edit_stmt);
+		fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+		return 1;
+	}
+
+	int result = sqlite3_step(edit_stmt);
+
+	if (result == SQLITE_DONE) {
+		sqlite3_finalize(edit_stmt);
+		fprintf(stderr, "Script not found!\n");
+		return 1;
+	}
+
+	if (result != SQLITE_ROW) {
+		sqlite3_finalize(edit_stmt);
+		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		return 1;
+	}
+
+	int script_id = sqlite3_column_int(edit_stmt, 0);
+	sqlite3_finalize(edit_stmt);
+	int script_len = GET_INT_SIZE(script_id) + strlen(script_path) + 2;
+	char *script = malloc(script_len);
+
+	if (script == NULL) {
+		fprintf(stderr, "Error allocating memory!\n");
+		return 2;
+	}
+
+	snprintf(script, script_len, "%s/%d", script_path, script_id);
+
+	char *editor_args[3];
+	editor_args[0] = getenv(SM_EDITOR_ENV) ? getenv(SM_EDITOR_ENV) : SM_DEFAULT_EDITOR;
+	editor_args[1] = script;
+	editor_args[2] = NULL;
+
+	execvp(editor_args[0], editor_args);
+
+	fprintf(stderr, "Error executing editor!\n");
+	free(script);
+
+	return 1;
 }
 
 static int

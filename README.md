@@ -53,6 +53,14 @@ description: stuff
 
 Script-Manager will work with any executable file. Meaning, scripts that have `#!` to specify an interpreter or compiled executables (Such as a C program).
 
+It is possible to edit files directly using:
+
+```sh
+sm -V test
+```
+
+This will open the file in an editor. The default is Vim, however the editor can be changed by setting the `SMEDITOR` environment variable.
+
 ## Installation
 
 First, make sure you have the SQLite development package installed for your system.

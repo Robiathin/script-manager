@@ -23,6 +23,9 @@
 #define SCRIPT_DB_FILE "/script-manager.db"
 #define SCRIPT_TABLE "scripts"
 
+#define SM_DEFAULT_EDITOR  "vim"
+#define SM_EDITOR_ENV      "SMEDITOR"
+
 #define GET_INT_SIZE(x) ((int) floor(log10(abs(x))) + 1)
 
 enum command_mode {
@@ -30,6 +33,7 @@ enum command_mode {
 	DELETE,
 	EXECUTE,
 	ECHO,
+	EDIT,
 	HELP,
 	LIST,
 	REPLACE,
@@ -57,6 +61,7 @@ static int	 init_sm(void);
 static int	 add_script(void);
 static int	 delete_script(void);
 static int	 execute_script(void);
+static int	 edit_script(void);
 static int	 replace_script(void);
 static int	 search_script(void);
 static int	 list_script(void);

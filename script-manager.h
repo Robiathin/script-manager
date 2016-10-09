@@ -24,7 +24,9 @@
 #define SCRIPT_TABLE "scripts"
 
 #define SM_DEFAULT_EDITOR  "vim"
+#define SM_DEFAULT_PAGER   "less"
 #define SM_EDITOR_ENV      "SMEDITOR"
+#define SM_PAGER_ENV       "SMPAGER"
 
 #define GET_INT_SIZE(x) ((int) floor(log10(abs(x))) + 1)
 

@@ -714,7 +714,9 @@ search_script(void)
 			dup2(p[1], STDOUT_FILENO);
 			close(p[1]);
 		} else {
-			char *pager_args[] = { "less", NULL };
+			char *pager_args[2];
+			pager_args[0] = getenv(SM_PAGER_ENV) ? getenv(SM_PAGER_ENV) : SM_DEFAULT_PAGER;
+			pager_args[1] = NULL;
 			close(p[1]);
 			dup2(p[0], STDIN_FILENO);
 			close(p[0]);
@@ -812,7 +814,9 @@ echo_script(void)
 					err = 1;
 				}
 			} else {
-				char *pager_args[] = { "less", NULL };
+				char *pager_args[2];
+ 				pager_args[0] = getenv(SM_PAGER_ENV) ? getenv(SM_PAGER_ENV) : SM_DEFAULT_PAGER;
+				pager_args[1] = NULL;
 				close(p[1]);
 				dup2(p[0], STDIN_FILENO);
 				close(p[0]);
@@ -899,7 +903,9 @@ list_script(void)
 			dup2(p[1], STDOUT_FILENO);
 			close(p[1]);
 		} else {
-			char *pager_args[] = { "less", NULL };
+			char *pager_args[2];
+			pager_args[0] = getenv(SM_PAGER_ENV) ? getenv(SM_PAGER_ENV) : SM_DEFAULT_PAGER;
+			pager_args[1] = NULL;
 			close(p[1]);
 			dup2(p[0], STDIN_FILENO);
 			close(p[0]);

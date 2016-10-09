@@ -53,6 +53,8 @@ description: stuff
 
 Script-Manager will work with any executable file. Meaning, scripts that have `#!` to specify an interpreter or compiled executables (Such as a C program).
 
+The output from echoing files, searching or listing files is paged by default unless the output is piped or if the `-p` flag is set. By default less is used as the pager, but this can be changed by setting the `SMPAGER` environment variable.
+
 It is possible to edit files directly using:
 
 ```sh

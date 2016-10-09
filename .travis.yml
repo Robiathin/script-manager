@@ -15,3 +15,5 @@ sudo: true
 script:
     - make
     - sudo make install
+    - sm -a -n test -f test/test.pl -D 'test file'
+    - if [ "$(sm -e test)" = "hello world" ]; then /bin/true; else /bin/false; fi

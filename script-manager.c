@@ -675,7 +675,7 @@ search_script(void)
 	} else if (args.name != NULL) {
 		if (sqlite3_prepare_v2(db, "SELECT * FROM " SCRIPT_TABLE " WHERE instr(name, ?) > 0;", -1,
 		    &search_stmt, NULL) != SQLITE_OK) {
-			fprintf(stderr, "SQLite error!");
+			fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
 			return 1;
 		}
 
@@ -687,7 +687,7 @@ search_script(void)
 	} else { /* args.description != NULL */
 		if (sqlite3_prepare_v2(db, "SELECT * FROM " SCRIPT_TABLE " WHERE instr(description, ?) > 0;",
 		    -1, &search_stmt, NULL) != SQLITE_OK) {
-			fprintf(stderr, "SQLite error!");
+			fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
 			return 1;
 		}
 

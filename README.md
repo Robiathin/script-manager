@@ -76,6 +76,10 @@ make
 sudo make install
 ```
 
+## Compatabillity
+
+Script-Manager should work on any GNU/Linux or BSD system. Travis CI has shown some issues running on macOS which have yet to be either confirmed or resolved.
+
 ## Dependencies
 
  - SQLite 3 headers

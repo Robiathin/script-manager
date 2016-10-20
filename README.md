@@ -78,7 +78,7 @@ sudo make install
 
 ## Compatabillity
 
-Script-Manager should work on any GNU/Linux or BSD system. There are currently some support issues with macOS.
+Script-Manager should work on any GNU/Linux, BSD or macOS system. Script-Manager on macOS does not support paging output at this time however is wanted it can be done externally: `sm -E test | less`
 
 ## Dependencies
 

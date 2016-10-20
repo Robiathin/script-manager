@@ -699,6 +699,7 @@ search_script(void)
 	}
 
 	int err = 0;
+#ifndef NO_PAGE
 	pid_t pid;
 	int p[2];
 
@@ -723,6 +724,7 @@ search_script(void)
 			execvp(pager_args[0], pager_args);
 		}
 	}
+#endif /* NO_PAGE */
 
 	if (!err)
 		for (;;) {
@@ -787,8 +789,10 @@ echo_script(void)
 	}
 
 	snprintf(script, script_len, "%s/%d", script_path, script_id);
+
 	int err = 0;
 
+#ifndef NO_PAGE
 	if (isatty(STDOUT_FILENO) && args.page) {
 		pid_t pid;
 		int p[2];
@@ -819,11 +823,17 @@ echo_script(void)
 			}
 		}
 	} else {
+#endif /* NO_PAGE */
+
 		if (print_file(script)) {
 			fprintf(stderr, "Error opening file!\n");
 			err = 1;
 		}
+
+#ifndef NO_PAGE
 	}
+#endif
+
 	free(script);
 	return err;
 }
@@ -888,6 +898,8 @@ static int
 list_script(void)
 {
 	int err = 0;
+
+#ifndef NO_PAGE
 	pid_t pid;
 	int p[2];
 
@@ -912,6 +924,8 @@ list_script(void)
 			execvp(pager_args[0], pager_args);
 		}
 	}
+
+#endif /* NO_PAGE */
 
 	if (sqlite3_exec(db, "SELECT * FROM " SCRIPT_TABLE ";", list_script_callback, 0, NULL)) {
 		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));

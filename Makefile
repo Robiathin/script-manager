@@ -30,6 +30,12 @@ endif
 
 .PHONY: all clean install uninstall
 
+# Paging doesn't work on macOS. This will be fixed in the future.
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	CFLAGS += -D NO_PAGE
+endif
+
 $(SM): $(SRCS)
 	$(CC) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(SM)
 

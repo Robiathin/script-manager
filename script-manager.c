@@ -702,7 +702,7 @@ search_script(void)
 	pid_t pid;
 	int p[2];
 
-	if (!isatty(STDOUT_FILENO) || args.page) {
+	if (isatty(STDOUT_FILENO) && args.page) {
 		if (pipe(p)) {
 			fprintf(stderr, "Error opening pipe!\n");
 			err = 1;
@@ -789,12 +789,7 @@ echo_script(void)
 	snprintf(script, script_len, "%s/%d", script_path, script_id);
 	int err = 0;
 
-	if (!isatty(STDOUT_FILENO) || !args.page) {
-		if (print_file(script)) {
-			fprintf(stderr, "Error opening file!\n");
-			err = 1;
-		}
-	} else {
+	if (isatty(STDOUT_FILENO) && args.page) {
 		pid_t pid;
 		int p[2];
 
@@ -822,6 +817,11 @@ echo_script(void)
 				close(p[0]);
 				execvp(pager_args[0], pager_args);
 			}
+		}
+	} else {
+		if (print_file(script)) {
+			fprintf(stderr, "Error opening file!\n");
+			err = 1;
 		}
 	}
 	free(script);
@@ -891,7 +891,7 @@ list_script(void)
 	pid_t pid;
 	int p[2];
 
-	if (!isatty(STDOUT_FILENO) || args.page) {
+	if (isatty(STDOUT_FILENO) && args.page) {
 		if (pipe(p)) {
 			fprintf(stderr, "Error opening pipe!\n");
 			err = 1;

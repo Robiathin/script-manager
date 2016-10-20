@@ -78,7 +78,7 @@ sudo make install
 
 ## Compatabillity
 
-Script-Manager should work on any GNU/Linux or BSD system. Travis CI has shown some issues running on macOS which have yet to be either confirmed or resolved.
+Script-Manager should work on any GNU/Linux or BSD system. There are currently some support issues with macOS.
 
 ## Dependencies
 

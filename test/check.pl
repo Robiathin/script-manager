@@ -105,7 +105,7 @@ if ($other_script_contents eq `sm -E test -p`) {
 	$result++;
 }
 
-print "\n"
+print "\n";
 
 if ($result) {
 	print "There were $result test failures.\n";

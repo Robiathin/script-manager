@@ -43,7 +43,7 @@ open(my $fh, '>', "testscript.pl") or die "Could not open file 'testscript.pl' $
 print $fh $script_contents;
 close $fh;
 
-print "Testing add...\t";
+print "Testing add...\t\t";
 
 `sm -a -n test -f testscript.pl -D 'test file'`;
 

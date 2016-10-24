@@ -23,7 +23,7 @@
 #define SCRIPT_DB_FILE "/script-manager.db"
 #define SCRIPT_TABLE "scripts"
 
-#define SM_DEFAULT_EDITOR  "vim"
+#define SM_DEFAULT_EDITOR  "vi"
 #define SM_DEFAULT_PAGER   "less"
 #define SM_EDITOR_ENV      "SMEDITOR"
 #define SM_PAGER_ENV       "SMPAGER"

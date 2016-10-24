@@ -816,7 +816,8 @@ echo_script(void)
 				}
 			} else {
 				char *pager_args[2];
- 				pager_args[0] = getenv(SM_PAGER_ENV) ? getenv(SM_PAGER_ENV) : SM_DEFAULT_PAGER;
+ 				pager_args[0] = getenv(SM_PAGER_ENV) ? getenv(SM_PAGER_ENV) :
+				    (getenv("PAGER") ? getenv("PAGER") : SM_DEFAULT_PAGER);
 				pager_args[1] = NULL;
 				close(p[1]);
 				dup2(p[0], STDIN_FILENO);
@@ -886,7 +887,8 @@ edit_script(void)
 	snprintf(script, script_len, "%s/%d", script_path, script_id);
 
 	char *editor_args[3];
-	editor_args[0] = getenv(SM_EDITOR_ENV) ? getenv(SM_EDITOR_ENV) : SM_DEFAULT_EDITOR;
+	editor_args[0] = getenv(SM_EDITOR_ENV) ? getenv(SM_EDITOR_ENV) :
+	    (getenv("EDITOR") ? getenv("EDITOR") : SM_DEFAULT_EDITOR);
 	editor_args[1] = script;
 	editor_args[2] = NULL;
 
@@ -920,7 +922,8 @@ list_script(void)
 			close(p[1]);
 		} else {
 			char *pager_args[2];
-			pager_args[0] = getenv(SM_PAGER_ENV) ? getenv(SM_PAGER_ENV) : SM_DEFAULT_PAGER;
+			pager_args[0] = getenv(SM_PAGER_ENV) ? getenv(SM_PAGER_ENV) :
+			    (getenv("PAGER") ? getenv("PAGER") : SM_DEFAULT_PAGER;
 			pager_args[1] = NULL;
 			close(p[1]);
 			dup2(p[0], STDIN_FILENO);

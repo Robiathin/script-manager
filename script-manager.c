@@ -722,6 +722,8 @@ search_script(void)
 			dup2(p[0], STDIN_FILENO);
 			close(p[0]);
 			execvp(pager_args[0], pager_args);
+			fprintf(stderr, "Failed to execute pager!\n");
+			exit(1);
 		}
 	}
 #endif /* NO_PAGE */
@@ -820,6 +822,8 @@ echo_script(void)
 				dup2(p[0], STDIN_FILENO);
 				close(p[0]);
 				execvp(pager_args[0], pager_args);
+				fprintf(stderr, "Failed to execute pager!\n");
+				exit(1);
 			}
 		}
 	} else {
@@ -922,6 +926,8 @@ list_script(void)
 			dup2(p[0], STDIN_FILENO);
 			close(p[0]);
 			execvp(pager_args[0], pager_args);
+			fprintf(stderr, "Failed to execute pager!\n");
+			exit(1);
 		}
 	}
 

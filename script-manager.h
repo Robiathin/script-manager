@@ -41,6 +41,7 @@ enum command_mode {
 	REPLACE,
 	SEARCH,
 	VERSION,
+	COMPLETE,
 	NOT_SET
 };
 
@@ -69,5 +70,7 @@ static int	 search_script(void);
 static int	 list_script(void);
 static int	 echo_script(void);
 static int	 list_script_callback(void *, int, char **, char **);
+static int	 auto_complete_list(void);
+static int	 auto_complete_list_callback(void *, int, char **, char **);
 
 #endif /* _SCRIPT_MANAGER_H_ */

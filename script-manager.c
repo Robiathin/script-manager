@@ -50,7 +50,7 @@ main(int argc, char * const *argv)
 	int error = 0;
 	char option;
 
-	while ((option = getopt(argc, argv,"ad:e:E:hkKlpPr:svV:A:n:f:D:")) != -1) {
+	while ((option = getopt(argc, argv,"ad:e:E:hkKlpPr:svV:A:n:f:D:C")) != -1) {
 		switch (option) {
 		case 'a': /* ADD */
 			if (args.mode == NOT_SET)
@@ -196,6 +196,12 @@ main(int argc, char * const *argv)
 				error = 1;
 
 			break;
+		case 'C': /* Script names for shell completion */
+			if (args.mode == NOT_SET)
+				args.mode = COMPLETE;
+			else
+				error = 1;
+			break;
 		default:
 			error = 1;
 		}
@@ -244,6 +250,8 @@ main(int argc, char * const *argv)
 	case VERSION:
 		print_version();
 		return 0;
+	case COMPLETE:
+		return auto_complete_list();
 	default:
 		break;
 	}
@@ -325,6 +333,10 @@ validate_args(void)
 
 	if (args.mode == EDIT && (args.name == NULL || args.file != NULL
 	    || args.description != NULL || args.arguments != NULL))
+		return 1;
+
+	if (args.mode == COMPLETE && (args.name != NULL || args.file != NULL
+	    || args.description != NULL || args.arguments != NULL || args.remove_file != -1))
 		return 1;
 
 	return 0;
@@ -952,5 +964,29 @@ list_script_callback(void *not_used, int argc, char **argv, char **column)
 	}
 
 	puts("");
+	return 0;
+}
+
+static int
+auto_complete_list(void)
+{
+	int err = 0;
+
+	if (sqlite3_exec(db, "SELECT name FROM " SCRIPT_TABLE ";",
+	    auto_complete_list_callback, 0, NULL)) {
+		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		err = 1;
+	}
+
+	return err;
+}
+
+static int
+auto_complete_list_callback(void *not_used, int argc, char **argv, char **column)
+{
+	for (size_t i = 0; i < argc; i++) {
+		printf("%s ", argv[i]);
+	}
+
 	return 0;
 }

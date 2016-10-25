@@ -923,7 +923,7 @@ list_script(void)
 		} else {
 			char *pager_args[2];
 			pager_args[0] = getenv(SM_PAGER_ENV) ? getenv(SM_PAGER_ENV) :
-			    (getenv("PAGER") ? getenv("PAGER") : SM_DEFAULT_PAGER;
+			    (getenv("PAGER") ? getenv("PAGER") : SM_DEFAULT_PAGER);
 			pager_args[1] = NULL;
 			close(p[1]);
 			dup2(p[0], STDIN_FILENO);

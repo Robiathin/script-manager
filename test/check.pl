@@ -105,6 +105,26 @@ if ($other_script_contents eq `sm -E test -p`) {
 	$result++;
 }
 
+print "Testing completion...\t";
+
+if (`sm -C` eq "test ") {
+	print "PASS\n";
+} else {
+	print "FAIL\n";
+	$result++;
+}
+
+print "Testing edit...\t";
+
+`sm -V test`;
+
+if (!$?) {
+	print "PASS\n";
+} else {
+	print "FAIL\n";
+	$result++;
+}
+
 print "\n";
 
 if ($result) {

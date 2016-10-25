@@ -10,6 +10,10 @@ compiler:
     - gcc
     - clang
 
+env:
+    - EDITOR=true
+    - PAGER=true
+
 sudo: true
 
 script:

@@ -125,6 +125,17 @@ if (!$?) {
 	$result++;
 }
 
+print "Test no file...\t";
+
+`sm -a -f notafile -n invalid -D desc`;
+
+if ($?) {
+	print "PASS\n";
+} else {
+	print "FAIL\n";
+	$result++;
+}
+
 print "\n";
 
 if ($result) {

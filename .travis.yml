@@ -11,8 +11,7 @@ compiler:
     - clang
 
 env:
-    - EDITOR=true
-    - PAGER=true
+    - EDITOR=true PAGER=true
 
 sudo: true
 

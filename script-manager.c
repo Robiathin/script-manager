@@ -50,7 +50,7 @@ main(int argc, char * const *argv)
 	int error = 0;
 	char option;
 
-	while ((option = getopt(argc, argv,"ad:e:E:hkKlpPr:svV:A:n:f:D:C")) != -1) {
+	while ((option = getopt(argc, argv, "ad:e:E:hkKlpPr:svV:A:n:f:D:C")) != -1) {
 		switch (option) {
 		case 'a': /* ADD */
 			if (args.mode == NOT_SET)
@@ -122,7 +122,7 @@ main(int argc, char * const *argv)
 				error = 1;
 
 			break;
-		case 'l':
+		case 'l': /* LIST */
 			if (args.mode == NOT_SET)
 				args.mode = LIST;
 			else
@@ -196,7 +196,7 @@ main(int argc, char * const *argv)
 				error = 1;
 
 			break;
-		case 'C': /* Script names for shell completion */
+		case 'C': /* COMPLETE */
 			if (args.mode == NOT_SET)
 				args.mode = COMPLETE;
 			else
@@ -533,6 +533,7 @@ delete_script(void)
 		}
 	sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
 	puts("Script deleted.");
+
 	return 0;
 }
 
@@ -667,8 +668,8 @@ search_script(void)
 	sqlite3_stmt *search_stmt = NULL;
 
 	if (args.name != NULL && args.description != NULL) {
-		if (sqlite3_prepare_v2(db, "SELECT * FROM " SCRIPT_TABLE " WHERE name LIKE '%' || ? || '%' AND description LIKE '%' || ? || '%';",
-		    -1, &search_stmt, NULL) != SQLITE_OK) {
+		if (sqlite3_prepare_v2(db, "SELECT * FROM " SCRIPT_TABLE " WHERE name LIKE"
+		    " '%' || ? || '%' AND description LIKE '%' || ? || '%';", -1, &search_stmt, NULL) != SQLITE_OK) {
 			fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
 			return 1;
 		}
@@ -730,10 +731,13 @@ search_script(void)
 			char *pager_args[2];
 			pager_args[0] = getenv(SM_PAGER_ENV) ? getenv(SM_PAGER_ENV) : SM_DEFAULT_PAGER;
 			pager_args[1] = NULL;
+
 			close(p[1]);
 			dup2(p[0], STDIN_FILENO);
 			close(p[0]);
+
 			execvp(pager_args[0], pager_args);
+
 			fprintf(stderr, "Failed to execute pager!\n");
 			exit(1);
 		}
@@ -822,6 +826,7 @@ echo_script(void)
 				close(p[0]);
 				dup2(p[1], STDOUT_FILENO);
 				close(p[1]);
+
 				if (print_file(script)) {
 					fprintf(stderr, "Error opening file!\n");
 					err = 1;
@@ -841,16 +846,13 @@ echo_script(void)
 		}
 	} else {
 #endif /* NO_PAGE */
-
 		if (print_file(script)) {
 			fprintf(stderr, "Error opening file!\n");
 			err = 1;
 		}
-
 #ifndef NO_PAGE
 	}
 #endif
-
 	free(script);
 	return err;
 }
@@ -937,17 +939,18 @@ list_script(void)
 			pager_args[0] = getenv(SM_PAGER_ENV) ? getenv(SM_PAGER_ENV) :
 			    (getenv("PAGER") ? getenv("PAGER") : SM_DEFAULT_PAGER);
 			pager_args[1] = NULL;
+
 			close(p[1]);
 			dup2(p[0], STDIN_FILENO);
 			close(p[0]);
+
 			execvp(pager_args[0], pager_args);
+
 			fprintf(stderr, "Failed to execute pager!\n");
 			exit(1);
 		}
 	}
-
 #endif /* NO_PAGE */
-
 	if (sqlite3_exec(db, "SELECT * FROM " SCRIPT_TABLE ";", list_script_callback, 0, NULL)) {
 		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
 		err = 1;

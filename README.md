@@ -80,7 +80,7 @@ Optionally, to install BASH/ZSH tab completion for script names, add the content
 
 ## Compatabillity
 
-Script-Manager should work on any GNU/Linux, BSD or macOS system. Script-Manager on macOS does not support paging output at this time however is wanted it can be done externally: `sm -E test | less`
+Script-Manager should work on any GNU/Linux, BSD or macOS system. Script-Manager on macOS does not support paging output at this time however if wanted it can be done externally: `sm -E test | less`
 
 ## Dependencies
 

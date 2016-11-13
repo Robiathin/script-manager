@@ -60,45 +60,30 @@ main(int argc, char * const *argv)
 
 			break;
 		case 'd': /* DELETE */
-			if (args.mode == NOT_SET) {
+			if (args.mode == NOT_SET && args.name == NULL) {
 				args.mode = DELETE;
+				args.name = optarg;
 			} else {
 				error = 1;
-				break;
 			}
-
-			if (args.name == NULL)
-				args.name = optarg;
-			else
-				error = 1;
 
 			break;
 		case 'e': /* EXECUTE */
-			if (args.mode == NOT_SET) {
+			if (args.mode == NOT_SET && args.name == NULL) {
 				args.mode = EXECUTE;
+				args.name = optarg;
 			} else {
 				error = 1;
-				break;
 			}
-
-			if (args.name == NULL)
-				args.name = optarg;
-			else
-				error = 1;
 
 			break;
 		case 'E': /* ECHO */
-			if (args.mode == NOT_SET) {
+			if (args.mode == NOT_SET && args.name == NULL) {
 				args.mode = ECHO;
+				args.name = optarg;
 			} else {
 				error = 1;
-				break;
 			}
-
-			if (args.name == NULL)
-				args.name = optarg;
-			else
-				error = 1;
 
 			break;
 		case 'h': /* HELP */
@@ -131,22 +116,19 @@ main(int argc, char * const *argv)
 			break;
 		case 'p': /* DON'T PAGE */
 			args.page = 0;
+
 			break;
 		case 'P': /* PAGE */
 			args.page = 1;
+
 			break;
 		case 'r': /* REPLACE */
-			if (args.mode == NOT_SET) {
+			if (args.mode == NOT_SET && args.name == NULL) {
 				args.mode = REPLACE;
+				args.name = optarg;
 			} else {
 				error = 1;
-				break;
 			}
-
-			if (args.name == NULL)
-				args.name = optarg;
-			else
-				error = 1;
 
 			break;
 		case 's': /* SEARCH */
@@ -160,6 +142,7 @@ main(int argc, char * const *argv)
 				args.mode = VERSION;
 			else
 				error = 1;
+
 			break;
 		case 'A': /* ARGUMENT */
 			if (args.arg_size == 0)
@@ -177,23 +160,23 @@ main(int argc, char * const *argv)
 			break;
 		case 'n': /* NAME */
 			args.name = optarg;
+
 			break;
 		case 'f': /* FILE */
 			args.file = optarg;
+
 			break;
 		case 'D': /* DESCRIPTION */
 			args.description = optarg;
+
 			break;
 		case 'V': /* EDIT */
-			if (args.mode == NOT_SET)
+			if (args.mode == NOT_SET && args.name == NULL) {
 				args.mode = EDIT;
-			else
-				error = 1;
-
-			if (args.name == NULL)
 				args.name = optarg;
-			else
+			} else {
 				error = 1;
+			}
 
 			break;
 		case 'C': /* COMPLETE */
@@ -201,6 +184,7 @@ main(int argc, char * const *argv)
 				args.mode = COMPLETE;
 			else
 				error = 1;
+
 			break;
 		default:
 			error = 1;
@@ -346,15 +330,15 @@ static int
 init_sm(void)
 {
 	const char *homedir = getpwuid(getuid())->pw_dir;
-	int script_path_size = strlen(homedir) + strlen(SCRIPT_DB_DIR) + 1;
-	script_path = malloc(script_path_size);
+	int script_path_len = strlen(homedir) + strlen(SCRIPT_DB_DIR) + 1;
+	script_path = malloc(script_path_len);
 
 	if (script_path == NULL) {
 		fprintf(stderr, "Error allocating memory!\n");
 		return 2;
 	}
 
-	snprintf(script_path, script_path_size, "%s%s", homedir, SCRIPT_DB_DIR);
+	snprintf(script_path, script_path_len, "%s%s", homedir, SCRIPT_DB_DIR);
 
 	if (access(script_path, F_OK) == -1)
 		if (mkdir(script_path,  0755)) {
@@ -362,15 +346,15 @@ init_sm(void)
 			return 1;
 		}
 
-	script_path_size += strlen(SCRIPT_DB_FILE);
-	char *script_db_path = malloc(script_path_size);
+	script_path_len += strlen(SCRIPT_DB_FILE);
+	char *script_db_path = malloc(script_path_len);
 
 	if (script_db_path == NULL) {
 		fprintf(stderr, "Error allocating memory!\n");
 		return 2;
 	}
 
-	snprintf(script_db_path, script_path_size, "%s%s", script_path, SCRIPT_DB_FILE);
+	snprintf(script_db_path, script_path_len, "%s%s", script_path, SCRIPT_DB_FILE);
 	int res = sqlite3_open(script_db_path, &db);
 	free(script_db_path);
 
@@ -444,18 +428,21 @@ add_script(void)
 
 	int script_id = sqlite3_column_int(find_id_stmt, 0);
 	sqlite3_finalize(find_id_stmt);
-	int script_id_len = strlen(script_path) + GET_INT_SIZE(script_id) + 2;
-	char *new_file = malloc(script_id_len);
+	int new_file_len = strlen(script_path) + GET_INT_SIZE(script_id) + 2;
+	char *new_file = malloc(new_file_len);
 
 	if (new_file == NULL) {
 		fprintf(stderr, "Error allocating memory!\n");
 		return 2;
 	}
 
-	snprintf(new_file, script_id_len, "%s/%d", script_path, script_id);
+	snprintf(new_file, new_file_len, "%s/%d", script_path, script_id);
+
 	int status = (args.remove_file == -1 || args.remove_file == 0)
 	    ? copy_file(args.file, new_file) : rename(args.file, new_file);
-	status += make_executable(new_file);
+
+	if (!status)
+		status = make_executable(new_file);
 
 	if (status) {
 		sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
@@ -465,6 +452,7 @@ add_script(void)
 
 	sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
 	puts("Script added.");
+
 	return 0;
 }
 
@@ -515,15 +503,15 @@ delete_script(void)
 	}
 
 	sqlite3_finalize(delete_stmt);
-	int script_id_len = GET_INT_SIZE(script_id);
-	char *script = malloc(strlen(script_path) + script_id_len + 2);
+	int script_len = GET_INT_SIZE(script_id);
+	char *script = malloc(strlen(script_path) + script_len + 2);
 
 	if (script == NULL) {
 		fprintf(stderr, "Error allocating memory!\n");
 		return 2;
 	}
 
-	snprintf(script, strlen(script_path) + script_id_len + 2, "%s/%d", script_path, script_id);
+	snprintf(script, strlen(script_path) + script_len + 2, "%s/%d", script_path, script_id);
 
 	if (access(script, F_OK) != -1)
 		if (remove(script)) {
@@ -593,9 +581,12 @@ execute_script(void)
 		exec_args[i] = args.arguments[i - 1];
 
 	exec_args[args.arg_size + 1] = NULL;
+
 	execvp(script, exec_args);
+
 	free(script);
 	fprintf(stderr, "Error running script!");
+
 	return 1;
 }
 
@@ -659,6 +650,7 @@ replace_script(void)
 			fprintf(stderr, "Failed to remove original file!\n");
 
 	puts("File replaced.");
+
 	return 0;
 }
 
@@ -712,6 +704,7 @@ search_script(void)
 	}
 
 	int err = 0;
+
 #ifndef NO_PAGE
 	pid_t pid;
 	int p[2];
@@ -742,6 +735,7 @@ search_script(void)
 			exit(1);
 		}
 	}
+
 #endif /* NO_PAGE */
 
 	if (!err)
@@ -762,6 +756,7 @@ search_script(void)
 		}
 
 	sqlite3_finalize(search_stmt);
+
 	return err;
 }
 
@@ -836,10 +831,13 @@ echo_script(void)
  				pager_args[0] = getenv(SM_PAGER_ENV) ? getenv(SM_PAGER_ENV) :
 				    (getenv("PAGER") ? getenv("PAGER") : SM_DEFAULT_PAGER);
 				pager_args[1] = NULL;
+
 				close(p[1]);
 				dup2(p[0], STDIN_FILENO);
 				close(p[0]);
+
 				execvp(pager_args[0], pager_args);
+
 				fprintf(stderr, "Failed to execute pager!\n");
 				exit(1);
 			}
@@ -854,6 +852,7 @@ echo_script(void)
 	}
 #endif
 	free(script);
+
 	return err;
 }
 
@@ -967,21 +966,20 @@ list_script_callback(void *not_used, int argc, char **argv, char **column)
 	}
 
 	puts("");
+
 	return 0;
 }
 
 static int
 auto_complete_list(void)
 {
-	int err = 0;
-
 	if (sqlite3_exec(db, "SELECT name FROM " SCRIPT_TABLE ";",
 	    auto_complete_list_callback, 0, NULL)) {
 		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
-		err = 1;
+		return 1;
 	}
 
-	return err;
+	return 0;
 }
 
 static int

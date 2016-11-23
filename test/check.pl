@@ -15,6 +15,8 @@
 use strict;
 use warnings;
 
+use Term::ANSIColor;
+
 # Output to expect from both search and list.
 my $expected_output = <<EOF;
 id: 1
@@ -56,9 +58,13 @@ sub test {
 	print "$_[0]";
 
 	if ($_[1]) {
+		print color("green");
 		print "PASS\n";
+		print color("reset");
 	} else {
+		print color("red");
 		print "FAIL\n";
+		print color("reset");
 		$result++;
 	}
 }
@@ -69,11 +75,11 @@ test("Testing add...\t\t", (!$? && -f $ENV{"HOME"} . "/.script-db/1"));
 
 test("Testing execute...\t", ("hello world\n" eq `sm -e test 2>&1`));
 
-test("Testing list...\t", ($expected_output eq `sm -l -p 2>&1`));
+test("Testing list...\t\t", ($expected_output eq `sm -l -p 2>&1`));
 
 test("Testing search...\t", ($expected_output eq `sm -s -n te -p 2>&1`));
 
-test("Testing echo...\t", ($script_contents eq `sm -E test -p 2>&1`));
+test("Testing echo...\t\t", ($script_contents eq `sm -E test -p 2>&1`));
 
 # Write the alternate sample script to a file to test `sm -r`
 open($fh, ">", "testscript.pl") or die "Could not open file 'testscript.pl' $!";
@@ -88,7 +94,7 @@ test("Testing completion...\t", (`sm -C 2>&1` eq "test "));
 
 `sm -V test 2>&1`;
 
-test("Testing edit...\t", !$?);
+test("Testing edit...\t\t", !$?);
 
 `sm -a -f notafile -n invalid -D desc 2>&1`;
 

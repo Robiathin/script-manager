@@ -53,10 +53,10 @@ close $fh;
 #  Test message (string) - ex: Testing echo...\t
 #  Test result (boolean) - true for pass and false for fail
 sub test {
-	print "$_[0]"
+	print "$_[0]";
 
 	if ($_[1]) {
-		print "PASS\n"
+		print "PASS\n";
 	} else {
 		print "FAIL\n";
 		$result++;

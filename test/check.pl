@@ -39,102 +39,60 @@ EOF
 
 my $result = 0;
 
-open(my $fh, '>', "testscript.pl") or die "Could not open file 'testscript.pl' $!";
+# Write the sample script to a file
+open(my $fh, ">", "testscript.pl") or die "Could not open file 'testscript.pl' $!";
 print $fh $script_contents;
 close $fh;
 
-print "Testing add...\t\t";
+##
+# Test function
+#
+# Used as a helper for testing.
+#
+# Args:
+#  Test message (string) - ex: Testing echo...\t
+#  Test result (boolean) - true for pass and false for fail
+sub test {
+	print "$_[0]"
 
-`sm -a -n test -f testscript.pl -D 'test file'`;
-
-if (!$? && -f $ENV{"HOME"} . "/.script-db/1") {
-	print "PASS\n"
-} else {
-	print "FAIL\n";
-	$result++;
+	if ($_[1]) {
+		print "PASS\n"
+	} else {
+		print "FAIL\n";
+		$result++;
+	}
 }
 
-print "Testing execute...\t";
+`sm -a -n test -f testscript.pl -D 'test file' 2>&1`;
 
-if ("hello world\n" eq `sm -e test`) {
-	print "PASS\n"
-} else {
-	print "FAIL\n";
-	$result++;
-}
+test("Testing add...\t\t", (!$? && -f $ENV{"HOME"} . "/.script-db/1"));
 
-print "Testing list...\t";
+test("Testing execute...\t", ("hello world\n" eq `sm -e test 2>&1`));
 
-if ($expected_output eq `sm -l -p`) {
-	print "PASS\n";
-} else {
-	print "FAIL\n";
-	$result++;
-}
+test("Testing list...\t", ($expected_output eq `sm -l -p 2>&1`));
 
-print "Testing search...\t";
+test("Testing search...\t", ($expected_output eq `sm -s -n te -p 2>&1`));
 
-if ($expected_output eq `sm -s -n te -p`) {
-	print "PASS\n";
-} else {
-	print "FAIL\n";
-	$result++;
-}
+test("Testing echo...\t", ($script_contents eq `sm -E test -p 2>&1`));
 
-print "Testing echo...\t";
-
-if ($script_contents eq `sm -E test -p`) {
-	print "PASS\n";
-} else {
-	print "FAIL\n";
-	$result++;
-}
-
-print "Testing replace...\t";
-
-open($fh, '>', "testscript.pl") or die "Could not open file 'testscript.pl' $!";
+# Write the alternate sample script to a file to test `sm -r`
+open($fh, ">", "testscript.pl") or die "Could not open file 'testscript.pl' $!";
 print $fh $other_script_contents;
 close $fh;
 
-`sm -r test -f testscript.pl`;
+`sm -r test -f testscript.pl 2>&1`;
 
-if ($other_script_contents eq `sm -E test -p`) {
-	print "PASS\n";
-} else {
-	print "FAIL\n";
-	$result++;
-}
+test("Testing replace...\t", ($other_script_contents eq `sm -E test -p 2>&1`));
 
-print "Testing completion...\t";
+test("Testing completion...\t", (`sm -C 2>&1` eq "test "));
 
-if (`sm -C` eq "test ") {
-	print "PASS\n";
-} else {
-	print "FAIL\n";
-	$result++;
-}
+`sm -V test 2>&1`;
 
-print "Testing edit...\t";
+test("Testing edit...\t", !$?);
 
-`sm -V test`;
+`sm -a -f notafile -n invalid -D desc 2>&1`;
 
-if (!$?) {
-	print "PASS\n";
-} else {
-	print "FAIL\n";
-	$result++;
-}
-
-print "Test no file...\t";
-
-`sm -a -f notafile -n invalid -D desc`;
-
-if ($?) {
-	print "PASS\n";
-} else {
-	print "FAIL\n";
-	$result++;
-}
+test("Testing no file...\t", $?);
 
 print "\n";
 

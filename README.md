@@ -1,6 +1,6 @@
 # Script-Manager
 
-<a href="https://travis-ci.org/Robiathin/script-manager"><img src="https://travis-ci.org/Robiathin/script-manager.svg?branch=master" alt="Build Status"></a> <a href="https://github.com/Robiathin/script-manager/blob/master/LICENSE"><img src="https://img.shields.io/github/license/Robiathin/script-manager.svg?maxAge=2592000" alt="License"></a>
+<a href="https://github.com/Robiathin/script-manager/releases"><img src="https://img.shields.io/github/release/Robiathin/script-manager.svg" alt="Release"></a> <a href="https://github.com/Robiathin/script-manager/blob/master/LICENSE"><img src="https://img.shields.io/github/license/Robiathin/script-manager.svg?maxAge=2592000" alt="License"></a> <a href="https://travis-ci.org/Robiathin/script-manager"><img src="https://travis-ci.org/Robiathin/script-manager.svg?branch=master" alt="Build Status"></a>
 
 A tool for organizing and managing utility scripts. Allows for easy storage, searching, and executing of small scripts.
 

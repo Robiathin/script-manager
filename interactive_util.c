@@ -179,7 +179,7 @@ parse_args(arg_options_t *arg_options, int argc, char **argv[])
 			return error;
 	}
 
-	if (validate_args(arg_options))
+	if (validate_args(&args))
 		return 1;
 
 	*arg_options = args;

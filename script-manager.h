@@ -30,47 +30,20 @@
 
 #define GET_INT_SIZE(x) ((int) floor(log10(abs(x))) + 1)
 
-enum command_mode {
-	ADD,
-	DELETE,
-	EXECUTE,
-	ECHO,
-	EDIT,
-	HELP,
-	LIST,
-	REPLACE,
-	SEARCH,
-	VERSION,
-	COMPLETE,
-	NOT_SET
-};
-
-struct arg_options {
-	enum command_mode mode;
-	char *name;
-	char *file;
-	char *description;
-	int page;
-	size_t arg_size;
-	char **arguments;
-	int remove_file;
-};
-
-static void	 exit_cleanup(void);
-static void	 print_usage(void);
-static void	 print_version(void);
-static int	 validate_args(void);
-static int	 init_sm(void);
-static int	 add_script(void);
-static int	 delete_script(void);
-static int	 execute_script(void);
-static int	 edit_script(void);
-static int	 replace_script(void);
-static int	 search_script(void);
-static int	 list_script(void);
-static int	 echo_script(void);
-static int	 list_script_callback(void *, int, char **, char **);
-static int	 auto_complete_list(void);
-static int	 auto_complete_list_callback(void *, int, char **, char **);
+static void	exit_cleanup(void);
+static void	print_usage(void);
+static void	print_version(void);
+static int	init_sm(void);
+static int	add_script(void);
+static int	delete_script(void);
+static int	execute_script(void);
+static int	edit_script(void);
+static int	replace_script(void);
+static int	search_script(void);
+static int	list_script(void);
+static int	echo_script(void);
+static int	list_script_callback(void *, int, char **, char **);
+static int	auto_complete_list(void);
+static int	auto_complete_list_callback(void *, int, char **, char **);
 
 #endif /* _SCRIPT_MANAGER_H_ */

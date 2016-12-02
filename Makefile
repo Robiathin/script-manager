@@ -14,13 +14,14 @@
 
 SM = sm
 
-CFLAGS = -std=c99 -O3 -Wall
+CFLAGS = -pipe -std=c99 -O3 -Wall
 
 LDFLAGS = -lsqlite3 -lm
 
 SRCS = \
 	script-manager.c \
-	file_util.c
+	file_util.c \
+	interactive_util.c
 
 # Use clang if found, otherwise use gcc.
 CC ?= $(shell which clang)

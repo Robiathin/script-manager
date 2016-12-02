@@ -24,187 +24,32 @@
 #include <string.h>
 #include <math.h>
 #include <sqlite3.h>
-#include <getopt.h>
 
 #include "file_util.h"
+#include "interactive_util.h"
 #include "script-manager.h"
 
 sqlite3 *db;
 char *script_path;
-struct arg_options args;
+arg_options_t args;
 
 int
-main(int argc, char * const *argv)
+main(int argc, char *argv[])
 {
-	args.mode = NOT_SET;
-	args.name = NULL;
-	args.file = NULL;
-	args.description = NULL;
-	args.page = 1;
-	args.arg_size = 0;
-	args.arguments = NULL;
-	args.remove_file = -1;
+	int arg_res = parse_args(&args, argc, &argv);
 
-	atexit(exit_cleanup);
-
-	int error = 0;
-	char option;
-
-	while ((option = getopt(argc, argv, "ad:e:E:hkKlpPr:svV:A:n:f:D:C")) != -1) {
-		switch (option) {
-		case 'a': /* ADD */
-			if (args.mode == NOT_SET)
-				args.mode = ADD;
-			else
-				error = 1;
-
-			break;
-		case 'd': /* DELETE */
-			if (args.mode == NOT_SET && args.name == NULL) {
-				args.mode = DELETE;
-				args.name = optarg;
-			} else {
-				error = 1;
-			}
-
-			break;
-		case 'e': /* EXECUTE */
-			if (args.mode == NOT_SET && args.name == NULL) {
-				args.mode = EXECUTE;
-				args.name = optarg;
-			} else {
-				error = 1;
-			}
-
-			break;
-		case 'E': /* ECHO */
-			if (args.mode == NOT_SET && args.name == NULL) {
-				args.mode = ECHO;
-				args.name = optarg;
-			} else {
-				error = 1;
-			}
-
-			break;
-		case 'h': /* HELP */
-			if (args.mode == NOT_SET)
-				args.mode = HELP;
-			else
-				error = 1;
-
-			break;
-		case 'k': /* KEEP FILE */
-			if (args.remove_file == -1)
-				args.remove_file = 0;
-			else
-				error = 1;
-
-			break;
-		case 'K': /* DON'T KEEP FILE */
-			if (args.remove_file == -1)
-				args.remove_file = 1;
-			else
-				error = 1;
-
-			break;
-		case 'l': /* LIST */
-			if (args.mode == NOT_SET)
-				args.mode = LIST;
-			else
-				error = 1;
-
-			break;
-		case 'p': /* DON'T PAGE */
-			args.page = 0;
-
-			break;
-		case 'P': /* PAGE */
-			args.page = 1;
-
-			break;
-		case 'r': /* REPLACE */
-			if (args.mode == NOT_SET && args.name == NULL) {
-				args.mode = REPLACE;
-				args.name = optarg;
-			} else {
-				error = 1;
-			}
-
-			break;
-		case 's': /* SEARCH */
-			if (args.mode == NOT_SET)
-				args.mode = SEARCH;
-			else
-				error = 1;
-			break;
-		case 'v': /* VERSION */
-			if (args.mode == NOT_SET)
-				args.mode = VERSION;
-			else
-				error = 1;
-
-			break;
-		case 'A': /* ARGUMENT */
-			if (args.arg_size == 0)
-				args.arguments = malloc(sizeof(char *));
-			else
-				args.arguments = realloc(args.arguments, (args.arg_size + 1) * sizeof(char *));
-
-			if (args.arguments == NULL) {
-				error = 2;
-			} else {
-				args.arguments[args.arg_size] = optarg;
-				args.arg_size++;
-			}
-
-			break;
-		case 'n': /* NAME */
-			args.name = optarg;
-
-			break;
-		case 'f': /* FILE */
-			args.file = optarg;
-
-			break;
-		case 'D': /* DESCRIPTION */
-			args.description = optarg;
-
-			break;
-		case 'V': /* EDIT */
-			if (args.mode == NOT_SET && args.name == NULL) {
-				args.mode = EDIT;
-				args.name = optarg;
-			} else {
-				error = 1;
-			}
-
-			break;
-		case 'C': /* COMPLETE */
-			if (args.mode == NOT_SET)
-				args.mode = COMPLETE;
-			else
-				error = 1;
-
-			break;
-		default:
-			error = 1;
-		}
-
-		if (error == 1) {
-			fprintf(stderr, "Invalid args!\n");
-			print_usage();
-			return 1;
-		} else if (error == 2) {
-			fprintf(stderr, "Error allocating memory!\n");
-			return 2;
-		}
-	}
-
-	if (validate_args()) {
+	if (arg_res == 1) {
 		fprintf(stderr, "Invalid arguments!\n\n");
 		print_usage();
-		return 1;
+		exit(1);
 	}
+
+	if (arg_res == 2) {
+		fprintf(stderr, "Error allocating memory!\n");
+		exit(2);
+	}
+
+	atexit(exit_cleanup);
 
 	int init_result = init_sm();
 
@@ -271,59 +116,6 @@ print_version(void)
 	puts("Script Manager Vesion: " SM_VERSION);
 	puts("Copyright (c) 2016 Robert Tate");
 	puts("This software is available under the ISC license.");
-}
-
-static int
-validate_args(void)
-{
-	if (args.mode == NOT_SET)
-		return 1;
-
-	if (args.mode == ADD && (args.name == NULL || args.file == NULL
-	    || args.description == NULL || args.arguments != NULL))
-		return 1;
-
-	if (args.mode == REPLACE && (args.name == NULL || args.file == NULL
-	    || args.description != NULL || args.arguments != NULL))
-		return 1;
-
-	if (args.mode == DELETE && (args.name == NULL || args.file != NULL
-	    || args.description != NULL || args.arguments != NULL || args.remove_file != -1))
-		return 1;
-
-	if (args.mode == HELP && (args.name != NULL || args.file != NULL
-	    || args.description != NULL || args.arguments != NULL || args.remove_file != -1))
-		return 1;
-
-	if (args.mode == SEARCH && ((args.name == NULL && args.description == NULL)
-	    || args.arguments != NULL || args.remove_file != -1))
-		return 1;
-
-	if (args.mode == LIST && (args.name != NULL || args.file != NULL
-	    || args.description != NULL || args.arguments != NULL || args.remove_file != -1))
-		return 1;
-
-	if (args.mode == VERSION && (args.name != NULL || args.file != NULL
-	    || args.description != NULL || args.arguments != NULL || args.remove_file != -1))
-		return 1;
-
-	if (args.mode == EXECUTE && (args.name == NULL || args.file != NULL
-	    || args.description != NULL))
-		return 1;
-
-	if (args.mode == ECHO && (args.name == NULL || args.file != NULL
-	    || args.description != NULL || args.arguments != NULL))
-		return 1;
-
-	if (args.mode == EDIT && (args.name == NULL || args.file != NULL
-	    || args.description != NULL || args.arguments != NULL))
-		return 1;
-
-	if (args.mode == COMPLETE && (args.name != NULL || args.file != NULL
-	    || args.description != NULL || args.arguments != NULL || args.remove_file != -1))
-		return 1;
-
-	return 0;
 }
 
 static int

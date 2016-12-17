@@ -27,6 +27,7 @@
 
 #include "file_util.h"
 #include "interactive_util.h"
+#include "sql_util.h"
 #include "script-manager.h"
 
 sqlite3 *db;
@@ -161,7 +162,7 @@ init_sm(void)
 	    "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, "
 	    "description TEXT NOT NULL, CONSTRAINT name_unique UNIQUE (name));",
 	    NULL, NULL, &err) != SQLITE_OK) {
-		fprintf(stderr, "SQLite error: %s\n", err);
+		P_ERR_SQL(db);
 		sqlite3_free(err);
 		return 1;
 	}
@@ -177,30 +178,30 @@ add_script(void)
 		return 1;
 	}
 
-	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+	BEGIN_TRANSACTION(db);
 	sqlite3_stmt *add_stmt = NULL;
 
 	if (sqlite3_prepare_v2(db, "INSERT INTO " SCRIPT_TABLE " (name, description) VALUES (?, ?);",
 	    -1, &add_stmt, NULL) != SQLITE_OK) {
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
 	if (sqlite3_bind_text(add_stmt, 1, args.name, strlen(args.name), NULL) != SQLITE_OK) {
 		sqlite3_finalize(add_stmt);
-		fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL_BIND(db);
 		return 1;
 	}
 
 	if (sqlite3_bind_text(add_stmt, 2, args.description, strlen(args.description), NULL) != SQLITE_OK) {
 		sqlite3_finalize(add_stmt);
-		fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL_BIND(db);
 		return 1;
 	}
 
 	if (sqlite3_step(add_stmt) != SQLITE_DONE) {
 		sqlite3_finalize(add_stmt);
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
@@ -208,13 +209,13 @@ add_script(void)
 	sqlite3_stmt *find_id_stmt = NULL;
 
 	if (sqlite3_prepare_v2(db, "SELECT max(id) FROM " SCRIPT_TABLE, -1, &find_id_stmt, NULL) != SQLITE_OK) {
-		fprintf(stderr, "SQLite prepare error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
 	if (sqlite3_step(find_id_stmt) != SQLITE_ROW) {
 		sqlite3_finalize(find_id_stmt);
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
@@ -237,12 +238,12 @@ add_script(void)
 		status = make_executable(new_file);
 
 	if (status) {
-		sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
+		ROLLBACK(db);
 		fprintf(stderr, "An error occured while adding script file!\n");
 		return 1;
 	}
 
-	sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
+	END_TRANSACTION(db);
 	puts("Script added.");
 
 	return 0;
@@ -251,24 +252,24 @@ add_script(void)
 static int
 delete_script(void)
 {
-	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+	BEGIN_TRANSACTION(db);
 	sqlite3_stmt *delete_find_stmt = NULL;
 
 	if (sqlite3_prepare_v2(db, "SELECT id FROM " SCRIPT_TABLE " WHERE name = ?;",
 	    -1, &delete_find_stmt, NULL) != SQLITE_OK) {
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
 	if (sqlite3_bind_text(delete_find_stmt, 1, args.name, strlen(args.name), NULL) != SQLITE_OK) {
 		sqlite3_finalize(delete_find_stmt);
-		fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL_BIND(db);
 		return 1;
 	}
 
 	if (sqlite3_step(delete_find_stmt) != SQLITE_ROW) {
 		sqlite3_finalize(delete_find_stmt);
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
@@ -278,19 +279,19 @@ delete_script(void)
 
 	if (sqlite3_prepare_v2(db, "DELETE FROM " SCRIPT_TABLE "  WHERE name = ?;",
 	    -1, &delete_stmt, NULL) != SQLITE_OK) {
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
 	if (sqlite3_bind_text(delete_stmt, 1, args.name, strlen(args.name), NULL) != SQLITE_OK) {
 		sqlite3_finalize(delete_stmt);
-		fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL_BIND(db);
 		return 1;
 	}
 
 	if (sqlite3_step(delete_stmt) != SQLITE_DONE) {
 		sqlite3_finalize(delete_stmt);
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
@@ -307,11 +308,11 @@ delete_script(void)
 
 	if (access(script, F_OK) != -1)
 		if (remove(script)) {
-			sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
+			ROLLBACK(db);
 			fprintf(stderr, "Failed to remove script file!\n");
 			return 1;
 		}
-	sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
+	END_TRANSACTION(db);
 	puts("Script deleted.");
 
 	return 0;
@@ -324,13 +325,13 @@ execute_script(void)
 
 	if (sqlite3_prepare_v2(db, "SELECT id FROM " SCRIPT_TABLE " WHERE name = ?;",
 	    -1, &execute_stmt, NULL) != SQLITE_OK) {
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
 	if (sqlite3_bind_text(execute_stmt, 1, args.name, strlen(args.name), NULL) != SQLITE_OK) {
 		sqlite3_finalize(execute_stmt);
-		fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL_BIND(db);
 		return 1;
 	}
 
@@ -344,7 +345,7 @@ execute_script(void)
 
 	if (result != SQLITE_ROW) {
 		sqlite3_finalize(execute_stmt);
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
@@ -390,17 +391,17 @@ replace_script(void)
 		return 1;
 	}
 
-	const char *replace_find_sql = "SELECT id FROM " SCRIPT_TABLE " WHERE name = ?;";
 	sqlite3_stmt *replace_find_stmt = NULL;
 
-	if (sqlite3_prepare_v2(db, replace_find_sql, -1, &replace_find_stmt, NULL) != SQLITE_OK) {
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+	if (sqlite3_prepare_v2(db, "SELECT id FROM " SCRIPT_TABLE " WHERE name = ?;", -1,
+	    &replace_find_stmt, NULL) != SQLITE_OK) {
+		P_ERR_SQL(db);
 		return 1;
 	}
 
 	if (sqlite3_bind_text(replace_find_stmt, 1, args.name, strlen(args.name), NULL) != SQLITE_OK) {
 		sqlite3_finalize(replace_find_stmt);
-		fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL_BIND(db);
 		return 1;
 	}
 
@@ -414,7 +415,7 @@ replace_script(void)
 
 	if (result != SQLITE_ROW) {
 		sqlite3_finalize(replace_find_stmt);
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
@@ -454,43 +455,43 @@ search_script(void)
 	if (args.name != NULL && args.description != NULL) {
 		if (sqlite3_prepare_v2(db, "SELECT * FROM " SCRIPT_TABLE " WHERE name LIKE"
 		    " '%' || ? || '%' AND description LIKE '%' || ? || '%';", -1, &search_stmt, NULL) != SQLITE_OK) {
-			fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+			P_ERR_SQL(db);
 			return 1;
 		}
 
 		if (sqlite3_bind_text(search_stmt, 1, args.name, strlen(args.name), NULL) != SQLITE_OK) {
 			sqlite3_finalize(search_stmt);
-			fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+			P_ERR_SQL_BIND(db);
 			return 1;
 		}
 
 		if (sqlite3_bind_text(search_stmt, 2, args.description, strlen(args.description), NULL) != SQLITE_OK) {
 			sqlite3_finalize(search_stmt);
-			fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+			P_ERR_SQL_BIND(db);
 			return 1;
 		}
 	} else if (args.name != NULL) {
 		if (sqlite3_prepare_v2(db, "SELECT * FROM " SCRIPT_TABLE " WHERE name LIKE '%' || ? || '%';", -1,
 		    &search_stmt, NULL) != SQLITE_OK) {
-			fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+			P_ERR_SQL(db);
 			return 1;
 		}
 
 		if (sqlite3_bind_text(search_stmt, 1, args.name, strlen(args.name), NULL) != SQLITE_OK) {
 			sqlite3_finalize(search_stmt);
-			fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+			P_ERR_SQL_BIND(db);
 			return 1;
 		}
 	} else { /* args.description != NULL */
 		if (sqlite3_prepare_v2(db, "SELECT * FROM " SCRIPT_TABLE " WHERE description LIKE '%' || ? || '%';",
 		    -1, &search_stmt, NULL) != SQLITE_OK) {
-			fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+			P_ERR_SQL(db);
 			return 1;
 		}
 
 		if (sqlite3_bind_text(search_stmt, 1, args.description, strlen(args.description), NULL) != SQLITE_OK) {
 			sqlite3_finalize(search_stmt);
-			fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+			P_ERR_SQL_BIND(db);
 			return 1;
 		}
 	}
@@ -541,7 +542,7 @@ search_script(void)
 				break;
 			} else {
 				sqlite3_finalize(search_stmt);
-				fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+				P_ERR_SQL(db);
 				err = 1;
 				break;
 			}
@@ -559,13 +560,13 @@ echo_script(void)
 
 	if (sqlite3_prepare_v2(db, "SELECT id FROM " SCRIPT_TABLE " WHERE name = ?;",
 	    -1, &echo_stmt, NULL) != SQLITE_OK) {
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
 	if (sqlite3_bind_text(echo_stmt, 1, args.name, strlen(args.name), NULL) != SQLITE_OK) {
 		sqlite3_finalize(echo_stmt);
-		fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL_BIND(db);
 		return 1;
 	}
 
@@ -579,7 +580,7 @@ echo_script(void)
 
 	if (result != SQLITE_ROW) {
 		sqlite3_finalize(echo_stmt);
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
@@ -655,13 +656,13 @@ edit_script(void)
 
 	if (sqlite3_prepare_v2(db, "SELECT id FROM " SCRIPT_TABLE " WHERE name = ?;",
 	    -1, &edit_stmt, NULL) != SQLITE_OK) {
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
 	if (sqlite3_bind_text(edit_stmt, 1, args.name, strlen(args.name), NULL) != SQLITE_OK) {
 		sqlite3_finalize(edit_stmt);
-		fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL_BIND(db);
 		return 1;
 	}
 
@@ -675,7 +676,7 @@ edit_script(void)
 
 	if (result != SQLITE_ROW) {
 		sqlite3_finalize(edit_stmt);
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
 	}
 
@@ -743,7 +744,7 @@ list_script(void)
 	}
 #endif /* NO_PAGE */
 	if (sqlite3_exec(db, "SELECT * FROM " SCRIPT_TABLE ";", list_script_callback, 0, NULL)) {
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		err = 1;
 	}
 
@@ -751,34 +752,12 @@ list_script(void)
 }
 
 static int
-list_script_callback(void *not_used, int argc, char **argv, char **column)
-{
-	for (size_t i = 0; i < argc; i++) {
-		printf("%s: %s\n", column[i], argv[i]);
-	}
-
-	puts("");
-
-	return 0;
-}
-
-static int
 auto_complete_list(void)
 {
 	if (sqlite3_exec(db, "SELECT name FROM " SCRIPT_TABLE ";",
 	    auto_complete_list_callback, 0, NULL)) {
-		fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(db));
+		P_ERR_SQL(db);
 		return 1;
-	}
-
-	return 0;
-}
-
-static int
-auto_complete_list_callback(void *not_used, int argc, char **argv, char **column)
-{
-	for (size_t i = 0; i < argc; i++) {
-		printf("%s ", argv[i]);
 	}
 
 	return 0;

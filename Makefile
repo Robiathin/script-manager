@@ -21,7 +21,8 @@ LDFLAGS = -lsqlite3 -lm
 SRCS = \
 	script-manager.c \
 	file_util.c \
-	interactive_util.c
+	interactive_util.c \
+	sql_util.c
 
 # Use clang if found, otherwise use gcc.
 CC ?= $(shell which clang)

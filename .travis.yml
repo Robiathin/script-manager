@@ -4,6 +4,8 @@ os:
     - linux
     - osx
 
+dist: trusty
+
 osx_image: xcode8
 
 compiler:
@@ -13,7 +15,7 @@ compiler:
 env:
     - EDITOR=true PAGER=true
 
-sudo: true
+sudo: required
 
 before_install:
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install valgrind; fi

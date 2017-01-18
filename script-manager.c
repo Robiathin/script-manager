@@ -237,6 +237,8 @@ add_script(void)
 	if (!status)
 		status = make_executable(new_file);
 
+	free(new_file);
+
 	if (status) {
 		ROLLBACK(db);
 		fprintf(stderr, "An error occured while adding script file!\n");

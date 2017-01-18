@@ -15,6 +15,9 @@ env:
 
 sudo: true
 
+before_install:
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install valgrind; fi
+
 script:
     - make
     - sudo make install

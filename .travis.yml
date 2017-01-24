@@ -6,7 +6,8 @@ os:
 
 dist: trusty
 
-osx_image: xcode8
+# Older OSX version to support valgrind
+osx_image: xcode6.4
 
 compiler:
     - gcc
@@ -19,6 +20,8 @@ sudo: required
 
 before_install:
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install valgrind; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install valgrind; fi
 
 script:
     - make

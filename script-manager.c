@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Robert Tate <rob@rtate.se>
+ * Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -115,7 +115,7 @@ static void
 print_version(void)
 {
 	puts("Script Manager Vesion: " SM_VERSION);
-	puts("Copyright (c) 2016 Robert Tate");
+	puts("Copyright (c) 2016-2017 Robert Tate");
 	puts("This software is available under the ISC license.");
 }
 

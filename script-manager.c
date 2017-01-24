@@ -135,7 +135,6 @@ init_sm(void)
 
 	if (access(script_path, F_OK) == -1)
 		if (mkdir(script_path,  0755)) {
-			free(script_path);
 			fprintf(stderr, "Error creating directory!\n");
 			return 1;
 		}

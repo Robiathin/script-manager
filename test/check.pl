@@ -103,21 +103,24 @@ test("Testing edit...", !$?);
 
 test("Testing no file...", $?);
 
-# Testing with Valgrind...
-# Reset for valgrind tests
-rmtree $ENV{"HOME"} . "/.script-db";
+# Testing with Valgrind.
+# Currently only working on linux.
+if ($^O eq "linux") {
+	# Reset for valgrind tests
+	rmtree $ENV{"HOME"} . "/.script-db";
 
-system("$VALGRIND_EXEC ./sm -a -n test -f testscript.pl -D 'test file' 2>&1");
-test("Testing add with valgrind...", (!$? && -f $ENV{"HOME"} . "/.script-db/1"));
+	system("$VALGRIND_EXEC ./sm -a -n test -f testscript.pl -D 'test file' 2>&1");
+	test("Testing add with valgrind...", (!$? && -f $ENV{"HOME"} . "/.script-db/1"));
 
-system("$VALGRIND_EXEC ./sm -l -p 2>&1");
-test("Testing list with Valgrind...", !$?);
+	system("$VALGRIND_EXEC ./sm -l -p 2>&1");
+	test("Testing list with Valgrind...", !$?);
 
-system("$VALGRIND_EXEC ./sm -s -n te -p 2>&1");
-test("Testing search in valgrind...", !$?);
+	system("$VALGRIND_EXEC ./sm -s -n te -p 2>&1");
+	test("Testing search in valgrind...", !$?);
 
-system("$VALGRIND_EXEC ./sm -E test -p 2>&1");
-test("Testing echo in Valgrind...", !$?);
+	system("$VALGRIND_EXEC ./sm -E test -p 2>&1");
+	test("Testing echo in Valgrind...", !$?);
+}
 
 print "\n";
 

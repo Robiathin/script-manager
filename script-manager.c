@@ -624,7 +624,7 @@ echo_script(void)
 				}
 			} else {
 				char *pager_args[] = {
-					check_env(SM_PAGER_ENV, "PAGER", SM_DEFAULT_PAGER);
+					check_env(SM_PAGER_ENV, "PAGER", SM_DEFAULT_PAGER),
 					NULL
 				};
 

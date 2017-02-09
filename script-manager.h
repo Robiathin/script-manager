@@ -30,18 +30,19 @@
 
 #define GET_INT_SIZE(x) ((int) floor(log10(abs(x))) + 1)
 
-static void	exit_cleanup(void);
-static void	print_usage(void);
-static void	print_version(void);
-static int	init_sm(void);
-static int	add_script(void);
-static int	delete_script(void);
-static int	execute_script(void);
-static int	edit_script(void);
-static int	replace_script(void);
-static int	search_script(void);
-static int	list_script(void);
-static int	echo_script(void);
-static int	auto_complete_list(void);
+static void	 exit_cleanup(void);
+static void	 print_usage(void);
+static void	 print_version(void);
+static int	 init_sm(void);
+static int	 add_script(void);
+static int	 delete_script(void);
+static int	 execute_script(void);
+static int	 edit_script(void);
+static int	 replace_script(void);
+static int	 search_script(void);
+static int	 list_script(void);
+static int	 echo_script(void);
+static int	 auto_complete_list(void);
+static char	*check_env(char *, char *, char *);
 
 #endif /* _SCRIPT_MANAGER_H_ */

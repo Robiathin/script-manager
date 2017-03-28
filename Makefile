@@ -47,7 +47,7 @@ clean:
 	rm -f $(EXECUTABLE)
 
 install:
-	install -T -m 444 sm.1 /usr/share/man/man1/$(EXECUTABLE).1
+	install -m 444 sm.1 /usr/share/man/man1/$(EXECUTABLE).1
 	install -m 555 $(EXECUTABLE) /usr/local/bin/
 
 uninstall:

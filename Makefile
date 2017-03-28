@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Robert Tate <rob@rtate.se>
+# Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +12,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-SM = sm
+EXECUTABLE ?= sm
 
 CFLAGS = -pipe -std=c99 -O3 -Wall
 
@@ -35,21 +35,21 @@ endif
 # Paging doesn't work on macOS. This will be fixed in the future.
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	CFLAGS += -D NO_PAGE
+	CFLAGS += -DNO_PAGE
 endif
 
-$(SM): $(SRCS)
-	$(CC) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(SM)
+$(EXECUTABLE): $(SRCS)
+	$(CC) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(EXECUTABLE)
 
-all: $(SM)
+all: $(EXECUTABLE)
 
 clean:
-	rm -f sm
+	rm -f $(EXECUTABLE)
 
 install:
-	install -m 444 sm.1 /usr/share/man/man1/
-	install -m 555 $(SM) /usr/local/bin/
+	install -T -m 444 sm.1 /usr/share/man/man1/$(EXECUTABLE).1
+	install -m 555 $(EXECUTABLE) /usr/local/bin/
 
 uninstall:
-	rm -f /usr/share/man/man1/sm.1
-	rm -f /usr/local/bin/sm
+	rm -f /usr/share/man/man1/$(EXECUTABLE).1
+	rm -f /usr/local/bin/$(EXECUTABLE)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Robert Tate <rob@rtate.se>
+ * Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,6 +24,8 @@ int
 copy_file(char *from, char *to)
 {
 	FILE *from_file, *to_file;
+	int ch;
+
 	from_file = fopen(from, "rb");
 
 	if (from_file == NULL)
@@ -36,7 +38,6 @@ copy_file(char *from, char *to)
 		return 1;
 	}
 
-	int ch;
 	while (1) {
 		ch = fgetc(from_file);
 
@@ -56,12 +57,13 @@ int
 print_file(char *file_path)
 {
 	FILE *file;
+	int ch;
+
 	file = fopen(file_path, "rb");
 
 	if (file == NULL)
 		return 1;
 
-	int ch;
 	while (1) {
 		ch = fgetc(file);
 
@@ -81,10 +83,7 @@ make_executable(char *path)
 {
 	struct stat file_stat;
 
-	if (stat(path, &file_stat))
-		return 1;
-
-	if (chmod(path, file_stat.st_mode | S_IXOTH | S_IXGRP | S_IXUSR))
+	if (stat(path, &file_stat) || chmod(path, file_stat.st_mode | S_IXOTH | S_IXGRP | S_IXUSR))
 		return 1;
 
 	return 0;

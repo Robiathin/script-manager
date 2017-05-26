@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Robert Tate <rob@rtate.se>
+ * Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,9 +19,9 @@
 
 #define SM_VERSION "1.1.0"
 
-#define SCRIPT_DB_DIR "/.script-db"
+#define SCRIPT_DB_DIR  "/.script-db"
 #define SCRIPT_DB_FILE "/script-manager.db"
-#define SCRIPT_TABLE "scripts"
+#define SCRIPT_TABLE   "scripts"
 
 #define SM_DEFAULT_EDITOR  "vi"
 #define SM_DEFAULT_PAGER   "less"
@@ -30,19 +30,19 @@
 
 #define GET_INT_SIZE(x) ((int) floor(log10(abs(x))) + 1)
 
-static void	 exit_cleanup(void);
-static void	 print_usage(void);
-static void	 print_version(void);
-static int	 init_sm(void);
-static int	 add_script(void);
-static int	 delete_script(void);
-static int	 execute_script(void);
-static int	 edit_script(void);
-static int	 replace_script(void);
-static int	 search_script(void);
-static int	 list_script(void);
-static int	 echo_script(void);
-static int	 auto_complete_list(void);
-static char	*check_env(char *, char *, char *);
+static void		 exit_cleanup(void);
+static void		 print_usage(void);
+static void		 print_version(void);
+static int		 init_sm(void);
+static int		 add_script(void);
+static int		 delete_script(void);
+static int		 execute_script(void);
+static int		 edit_script(void);
+static int		 replace_script(void);
+static int		 search_script(void);
+static int		 list_script(void);
+static int		 echo_script(void);
+static int		 auto_complete_list(void);
+inline static char	*check_env(char *, char *, char *);
 
 #endif /* _SCRIPT_MANAGER_H_ */

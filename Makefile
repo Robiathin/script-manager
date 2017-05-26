@@ -14,8 +14,7 @@
 
 EXECUTABLE ?= sm
 
-CFLAGS = -pipe -std=c99 -O3 -Wall
-
+CFLAGS = -pipe -std=c99 -O3 -fgnu89-inline -Wall -Werror
 LDFLAGS = -lsqlite3 -lm
 
 SRCS = \
@@ -24,7 +23,7 @@ SRCS = \
 	interactive_util.c \
 	sql_util.c
 
-# Use clang if found, otherwise use gcc.
+# If CC isn't set, use clang if found, otherwise use gcc.
 CC ?= $(shell which clang)
 ifeq ($(CC),)
 	CC = gcc
@@ -32,7 +31,7 @@ endif
 
 .PHONY: all clean install uninstall
 
-# Paging doesn't work on macOS. This will be fixed in the future.
+# Paging doesn't work on macOS. This will be fixed in the future (probably, assuming I get around to it).
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 	CFLAGS += -DNO_PAGE
@@ -47,9 +46,9 @@ clean:
 	rm -f $(EXECUTABLE)
 
 install:
-	install -m 444 sm.1 /usr/share/man/man1/$(EXECUTABLE).1
-	install -m 555 $(EXECUTABLE) /usr/local/bin/
+	install -m 444 sm.1 ${prefix}/usr/share/man/man1/$(EXECUTABLE).1
+	install -m 555 $(EXECUTABLE) ${prefix}/usr/local/bin/
 
 uninstall:
-	rm -f /usr/share/man/man1/$(EXECUTABLE).1
-	rm -f /usr/local/bin/$(EXECUTABLE)
+	rm -f ${prefix}/usr/share/man/man1/$(EXECUTABLE).1
+	rm -f ${prefix}/usr/local/bin/$(EXECUTABLE)

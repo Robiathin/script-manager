@@ -132,28 +132,29 @@ exit_cleanup(void)
 static void
 print_usage(void)
 {
-	puts("See man page for more detailed information. Usage options:"\
-	    "\tadd:\t\t-a -n name -D description -f file"\
-	    "\tdelete:\t\t-d name"\
-	    "\texecute:\t-e name [-A arg] ..."\
-	    "\thelp:\t\t-h"\
-	    "\tlist:\t\t-l"\
-	    "\treplace:\t-r name -f file"\
-	    "\tsearch:\t\t-s [-n name -D description]"\
+	puts("See man page for more detailed information. Usage options:\n"\
+	    "\tadd:\t\t-a -n name -D description -f file\n"\
+	    "\tdelete:\t\t-d name\n"\
+	    "\texecute:\t-e name [-A arg] ...\n"\
+	    "\thelp:\t\t-h\n"\
+	    "\tlist:\t\t-l\n"\
+	    "\treplace:\t-r name -f file\n"\
+	    "\tsearch:\t\t-s [-n name -D description]\n"\
 	    "\tversion:\t-v");
 }
 
 static void
 print_version(void)
 {
-	puts("Script Manager Vesion: " SM_VERSION\
-	    "Copyright (c) 2016-2017 Robert Tate"\
-	    "This software is available under the ISC license.");
+	puts("Script Manager Vesion: " SM_VERSION "\n"\
+	    "Copyright (c) 2016-2017 Robert Tate\n"\
+	    "This software is available under the ISC license.\n");
 }
 
 static int
 init_sm(void)
 {
+
 	int script_path_len, res;
 	const char *homedir;
 	char *script_db_path, *err;
@@ -299,6 +300,7 @@ delete_script(void)
 	char *script;
 
 	delete_find_stmt = NULL;
+
 	BEGIN_TRANSACTION(db);
 
 	if (sqlite3_prepare_v2(db, "SELECT id FROM " SCRIPT_TABLE " WHERE name = ?;",
@@ -506,6 +508,11 @@ search_script(void)
 {
 	sqlite3_stmt *search_stmt;
 	int res, err;
+#ifndef NO_PAGE
+	pid_t pid;
+	int p[2];
+	char *pager_args[2];
+#endif
 
 	search_stmt = NULL;
 
@@ -556,9 +563,6 @@ search_script(void)
 	err = 0;
 
 #ifndef NO_PAGE
-	pid_t pid;
-	int p[2];
-	char *pager_args[2];
 
 	if (isatty(STDOUT_FILENO) && args.page) {
 		if (pipe(p)) {
@@ -618,7 +622,12 @@ echo_script(void)
 {
 	sqlite3_stmt *echo_stmt;
 	int res, script_id, script_len, err;
-	char *script;
+	char *script;	
+#ifndef NO_PAGE
+	pid_t pid;
+	int p[2];
+	char *pager_args[2];
+#endif
 
 	echo_stmt = NULL;
 
@@ -663,10 +672,6 @@ echo_script(void)
 	err = 0;
 
 #ifndef NO_PAGE
-	pid_t pid;
-	int p[2];
-	char *pager_args[2];
-
 	if (isatty(STDOUT_FILENO) && args.page) {
 		if (pipe(p)) {
 			fprintf(stderr, "Error opening pipe!\n");

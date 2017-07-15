@@ -19,6 +19,14 @@
 
 #include "interactive_util.h"
 
+
+
+
+
+#include <stdio.h>
+
+
+
 int
 parse_args(arg_options_t *arg_options, int argc, char **argv[])
 {
@@ -204,23 +212,23 @@ validate_args(arg_options_t *args)
 		return (1);
 
 	if (args->mode == DELETE && (args->name == NULL || args->file != NULL
-	    || args->description != NULL || args->arguments != NULL || args->remove_file != -1))
+	     || args->description != NULL || args->arguments != NULL))
 		return (1);
 
 	if (args->mode == HELP && (args->name != NULL || args->file != NULL
-	    || args->description != NULL || args->arguments != NULL || args->remove_file != -1))
+	    || args->description != NULL || args->arguments != NULL))
 		return (1);
 
 	if (args->mode == SEARCH && ((args->name == NULL && args->description == NULL)
-	    || args->arguments != NULL || args->remove_file != -1))
+	    || args->arguments != NULL))
 		return (1);
 
 	if (args->mode == LIST && (args->name != NULL || args->file != NULL
-	    || args->description != NULL || args->arguments != NULL || args->remove_file != -1))
+	   || args->description != NULL || args->arguments != NULL))
 		return (1);
 
 	if (args->mode == VERSION && (args->name != NULL || args->file != NULL
-	    || args->description != NULL || args->arguments != NULL || args->remove_file != -1))
+	    || args->description != NULL || args->arguments != NULL))
 		return (1);
 
 	if (args->mode == EXECUTE && (args->name == NULL || args->file != NULL
@@ -236,7 +244,7 @@ validate_args(arg_options_t *args)
 		return (1);
 
 	if (args->mode == COMPLETE && (args->name != NULL || args->file != NULL
-	    || args->description != NULL || args->arguments != NULL || args->remove_file != -1))
+	    || args->description != NULL || args->arguments != NULL))
 		return (1);
 
 	return (0);

@@ -19,9 +19,9 @@
 
 #define SM_VERSION "1.1.0"
 
-#define SCRIPT_DB_DIR "/.script-db"
+#define SCRIPT_DB_DIR  "/.script-db"
 #define SCRIPT_DB_FILE "/script-manager.db"
-#define SCRIPT_TABLE "scripts"
+#define SCRIPT_TABLE   "scripts"
 
 #define SM_DEFAULT_EDITOR  "vi"
 #define SM_DEFAULT_PAGER   "less"

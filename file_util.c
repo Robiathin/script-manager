@@ -83,10 +83,7 @@ make_executable(char *path)
 {
 	struct stat file_stat;
 
-	if (stat(path, &file_stat))
-		return (1);
-
-	if (chmod(path, file_stat.st_mode | S_IXOTH | S_IXGRP | S_IXUSR))
+	if (stat(path, &file_stat) || chmod(path, file_stat.st_mode | S_IXOTH | S_IXGRP | S_IXUSR))
 		return (1);
 
 	return (0);

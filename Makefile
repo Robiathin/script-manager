@@ -12,7 +12,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-SM = sm
+EXECUTABLE ?= sm
 CFLAGS = -pipe -std=c89 -O3 -Wall -Werror -D_BSD_SOURCE
 LDFLAGS = -lsqlite3 -lm
 SRCS = \
@@ -20,6 +20,7 @@ SRCS = \
 	file_util.c \
 	interactive_util.c \
 	sql_util.c
+
 
 # If CC is not set, try clang if found, otherwise use gcc.
 CC ?= $(shell which clang)
@@ -29,24 +30,24 @@ endif
 
 .PHONY: all clean install uninstall
 
-# Paging doesn't work on macOS. This will be fixed in the future.
+# Paging doesn't work on macOS. This will be fixed in the future (probably, assuming I get around to it).
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 	CFLAGS += -DNO_PAGE
 endif
 
-$(SM): $(SRCS)
-	$(CC) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(SM)
+$(EXECUTABLE): $(SRCS)
+	$(CC) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(EXECUTABLE)
 
-all: $(SM)
+all: $(EXECUTABLE)
 
 clean:
-	rm -f sm
+	rm -f $(EXECUTABLE)
 
 install:
-	install -m 444 sm.1 /usr/share/man/man1/
-	install -m 555 $(SM) /usr/local/bin/
+	install -m 444 sm.1 ${prefix}/usr/share/man/man1/$(EXECUTABLE).1
+	install -m 555 $(EXECUTABLE) ${prefix}/usr/local/bin/
 
 uninstall:
-	rm -f /usr/share/man/man1/sm.1
-	rm -f /usr/local/bin/sm
+	rm -f ${prefix}/usr/share/man/man1/$(EXECUTABLE).1
+	rm -f ${prefix}/usr/local/bin/$(EXECUTABLE)

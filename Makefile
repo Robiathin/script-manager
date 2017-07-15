@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Robert Tate <rob@rtate.se>
+# Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,18 +13,15 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 SM = sm
-
-CFLAGS = -pipe -std=c99 -O3 -Wall
-
+CFLAGS = -pipe -std=c89 -O3 -Wall -Werror -D_BSD_SOURCE
 LDFLAGS = -lsqlite3 -lm
-
 SRCS = \
 	script-manager.c \
 	file_util.c \
 	interactive_util.c \
 	sql_util.c
 
-# Use clang if found, otherwise use gcc.
+# If CC is not set, try clang if found, otherwise use gcc.
 CC ?= $(shell which clang)
 ifeq ($(CC),)
 	CC = gcc
@@ -35,7 +32,7 @@ endif
 # Paging doesn't work on macOS. This will be fixed in the future.
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	CFLAGS += -D NO_PAGE
+	CFLAGS += -DNO_PAGE
 endif
 
 $(SM): $(SRCS)

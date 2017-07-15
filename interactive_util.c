@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Robert Tate <rob@rtate.se>
+ * Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,6 +23,9 @@ int
 parse_args(arg_options_t *arg_options, int argc, char **argv[])
 {
 	arg_options_t args;
+	int error;
+	char option;
+
 	args.mode = NOT_SET;
 	args.name = NULL;
 	args.file = NULL;
@@ -30,10 +33,9 @@ parse_args(arg_options_t *arg_options, int argc, char **argv[])
 	args.page = 1;
 	args.arg_size = 0;
 	args.arguments = NULL;
-	args.remove_file = -1;
+	args.remove_file = 0;
 
-	int error = 0;
-	char option;
+	error = 0;
 
 	while ((option = getopt(argc, *argv, "ad:e:E:hkKlpPr:svV:A:n:f:D:C")) != -1) {
 		switch (option) {
@@ -176,66 +178,66 @@ parse_args(arg_options_t *arg_options, int argc, char **argv[])
 		}
 
 		if (error)
-			return error;
+			return (error);
 	}
 
 	if (validate_args(&args))
-		return 1;
+		return (1);
 
 	*arg_options = args;
 
-	return 0;
+	return (0);
 }
 
 int
 validate_args(arg_options_t *args)
 {
 	if (args->mode == NOT_SET)
-		return 1;
+		return (1);
 
 	if (args->mode == ADD && (args->name == NULL || args->file == NULL
 	    || args->description == NULL || args->arguments != NULL))
-		return 1;
+		return (1);
 
 	if (args->mode == REPLACE && (args->name == NULL || args->file == NULL
 	    || args->description != NULL || args->arguments != NULL))
-		return 1;
+		return (1);
 
 	if (args->mode == DELETE && (args->name == NULL || args->file != NULL
 	    || args->description != NULL || args->arguments != NULL || args->remove_file != -1))
-		return 1;
+		return (1);
 
 	if (args->mode == HELP && (args->name != NULL || args->file != NULL
 	    || args->description != NULL || args->arguments != NULL || args->remove_file != -1))
-		return 1;
+		return (1);
 
 	if (args->mode == SEARCH && ((args->name == NULL && args->description == NULL)
 	    || args->arguments != NULL || args->remove_file != -1))
-		return 1;
+		return (1);
 
 	if (args->mode == LIST && (args->name != NULL || args->file != NULL
 	    || args->description != NULL || args->arguments != NULL || args->remove_file != -1))
-		return 1;
+		return (1);
 
 	if (args->mode == VERSION && (args->name != NULL || args->file != NULL
 	    || args->description != NULL || args->arguments != NULL || args->remove_file != -1))
-		return 1;
+		return (1);
 
 	if (args->mode == EXECUTE && (args->name == NULL || args->file != NULL
 	    || args->description != NULL))
-		return 1;
+		return (1);
 
 	if (args->mode == ECHO && (args->name == NULL || args->file != NULL
 	    || args->description != NULL || args->arguments != NULL))
-		return 1;
+		return (1);
 
 	if (args->mode == EDIT && (args->name == NULL || args->file != NULL
 	    || args->description != NULL || args->arguments != NULL))
-		return 1;
+		return (1);
 
 	if (args->mode == COMPLETE && (args->name != NULL || args->file != NULL
 	    || args->description != NULL || args->arguments != NULL || args->remove_file != -1))
-		return 1;
+		return (1);
 
-	return 0;
+	return (0);
 }

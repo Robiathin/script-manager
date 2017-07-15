@@ -15,6 +15,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "sql_util.h"
 
@@ -31,7 +32,8 @@ int
 list_script_callback(void *not_used, int argc, char **argv, char **column)
 {
 	for (size_t i = 0; i < argc; i++)
-		printf("%s: %s\n", column[i], argv[i]);
+		if (strcmp(column[i], "id"))
+			printf("%s: %s\n", column[i], argv[i]);
 
 	puts("");
 

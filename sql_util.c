@@ -22,7 +22,9 @@
 int
 auto_complete_list_callback(void *not_used, int argc, char **argv, char **column)
 {
-	for (size_t i = 0; i < argc; i++)
+	size_t i;
+
+	for (i = 0; i < argc; i++)
 		printf("%s ", argv[i]);
 
 	return 0;
@@ -31,7 +33,9 @@ auto_complete_list_callback(void *not_used, int argc, char **argv, char **column
 int
 list_script_callback(void *not_used, int argc, char **argv, char **column)
 {
-	for (size_t i = 0; i < argc; i++)
+	size_t i;
+
+	for (i = 0; i < argc; i++)
 		if (strcmp(column[i], "id"))
 			printf("%s: %s\n", column[i], argv[i]);
 

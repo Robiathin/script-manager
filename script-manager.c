@@ -370,6 +370,7 @@ static int
 execute_script(void)
 {
 	sqlite3_stmt *execute_stmt;
+	size_t i;
 	int res, script_id, script_len;
 	char *script, **exec_args;
 
@@ -422,7 +423,7 @@ execute_script(void)
 
 	exec_args[0] = script;
 
-	for (size_t i = 1; i <= args.arg_size; i++)
+	for (i = 1; i <= args.arg_size; i++)
 		exec_args[i] = args.arguments[i - 1];
 
 	exec_args[args.arg_size + 1] = NULL;

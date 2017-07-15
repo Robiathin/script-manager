@@ -518,7 +518,7 @@ search_script(void)
 	search_stmt = NULL;
 
 	if (args.name != NULL && args.description != NULL) {
-		if (sqlite3_prepare_v2(db, "SELECT * FROM " SCRIPT_TABLE " WHERE name LIKE"
+		if (sqlite3_prepare_v2(db, "SELECT name, description FROM " SCRIPT_TABLE " WHERE name LIKE"
 		    " '%' || ? || '%' AND description LIKE '%' || ? || '%';", -1, &search_stmt, NULL) != SQLITE_OK) {
 			P_ERR_SQL(db);
 			return (1);
@@ -536,7 +536,7 @@ search_script(void)
 			return (1);
 		}
 	} else if (args.name != NULL) {
-		if (sqlite3_prepare_v2(db, "SELECT * FROM " SCRIPT_TABLE " WHERE name LIKE '%' || ? || '%';", -1,
+		if (sqlite3_prepare_v2(db, "SELECT name, description FROM " SCRIPT_TABLE " WHERE name LIKE '%' || ? || '%';", -1,
 		    &search_stmt, NULL) != SQLITE_OK) {
 			P_ERR_SQL(db);
 			return (1);
@@ -548,7 +548,7 @@ search_script(void)
 			return (1);
 		}
 	} else { /* args.description != NULL */
-		if (sqlite3_prepare_v2(db, "SELECT * FROM " SCRIPT_TABLE " WHERE description LIKE '%' || ? || '%';",
+		if (sqlite3_prepare_v2(db, "SELECT name, description FROM " SCRIPT_TABLE " WHERE description LIKE '%' || ? || '%';",
 		    -1, &search_stmt, NULL) != SQLITE_OK) {
 			P_ERR_SQL(db);
 			return (1);
@@ -601,8 +601,8 @@ search_script(void)
 		res = sqlite3_step(search_stmt);
 
 		if (res == SQLITE_ROW) {
-			printf("id: %d\nname: %s\ndescription: %s\n\n", sqlite3_column_int(search_stmt, 0),
-			sqlite3_column_text(search_stmt, 1), sqlite3_column_text(search_stmt, 2));
+			printf("name: %s\ndescription: %s\n\n", sqlite3_column_text(search_stmt, 0),
+			    sqlite3_column_text(search_stmt, 1));
 		} else if (res == SQLITE_DONE) {
 			break;
 		} else {

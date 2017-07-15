@@ -22,7 +22,6 @@ my $VALGRIND_EXEC = "valgrind --error-exitcode=1 --leak-check=full ";
 
 # Output to expect from both search and list.
 my $expected_output = <<EOF;
-id: 1
 name: test
 description: test file
 

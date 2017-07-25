@@ -17,7 +17,7 @@
 #ifndef _SCRIPT_MANAGER_H_
 #define _SCRIPT_MANAGER_H_
 
-#define SM_VERSION "1.1.0"
+#define SM_VERSION "1.1.1"
 
 #define SCRIPT_DB_DIR  "/.script-db"
 #define SCRIPT_DB_FILE "/script-manager.db"

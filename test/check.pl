@@ -58,16 +58,19 @@ close $fh;
 #  Test message (string) - ex: Testing echo...\t
 #  Test function (Subroutine) - true for pass and false for fail
 sub test {
-	say color("blue"), "Testing ", $_[0], "...", color("reset");
+	say color("blue"), "Starting ", $_[0], " test...", color("reset");
 
 	if ($_[1]->()) {
-		say color("blue"), "Testing ", $_[0], "... ", color("green"), "PASS", color("reset");
+		say color("blue"), $_[0], " test result: ", color("green"), "PASS", color("reset"), "\n\n";
 	} else {
-		say color("blue"), "Testing ", $_[0], "... ", color("red"), "FAIL", color("reset");
+		say color("blue"), $_[0], " test result: ", color("red"), "FAIL", color("reset"), "\n\n";
 		$result++;
 	}
 }
 
+##
+# Execute function that prints the command, the command output, and
+# returns the results of the command.
 sub t_exec {
 	say color("yellow"), $_[0], color("reset");
 	my $output = `$_[0]`;

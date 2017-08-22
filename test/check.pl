@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Robert Tate <rob@rtate.se>
+# Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,6 +14,7 @@
 
 use strict;
 use warnings;
+use 5.010;
 
 use File::Path;
 use Term::ANSIColor;
@@ -55,52 +56,68 @@ close $fh;
 #
 # Args:
 #  Test message (string) - ex: Testing echo...\t
-#  Test result (boolean) - true for pass and false for fail
+#  Test function (Subroutine) - true for pass and false for fail
 sub test {
-	print "$_[0]";
+	say "Testing ", $_[0], "...";
 
-	if ($_[1]) {
-		print color("green");
-		print "PASS\n";
-		print color("reset");
+	if ($_[1]->()) {
+		say "Testing ", $_[0], "... ", color("green"), "PASS", color("reset");
 	} else {
-		print color("red");
-		print "FAIL\n";
-		print color("reset");
+		say "Testing ", $_[0], "... ", color("red"), "FAIL", color("reset");
 		$result++;
 	}
 }
 
-`sm -a -n test -f testscript.pl -D 'test file' 2>&1`;
+test("add", sub {
+	system("sm -a -n test -f testscript.pl -D 'test file' 2>&1");
+	return (!$? && -f $ENV{"HOME"} . "/.script-db/1");
+});
 
-test("Testing add...", (!$? && -f $ENV{"HOME"} . "/.script-db/1"));
+test("execute", sub {
+	my $output = `sm -e test 2>&1`;
+	return ("hello world\n" eq $output);
+});
 
-test("Testing execute...", ("hello world\n" eq `sm -e test 2>&1`));
+test("list", sub {
+	my $output = `sm -l -p 2>&1`;
+	return ($expected_output eq $output);
+});
 
-test("Testing list...", ($expected_output eq `sm -l -p 2>&1`));
+test("search", sub {
+	my $output = `sm -s -n te -p 2>&1`;
+	return ($expected_output eq $output);
+});
 
-test("Testing search...", ($expected_output eq `sm -s -n te -p 2>&1`));
-
-test("Testing echo...", ($script_contents eq `sm -E test -p 2>&1`));
+test("echo", sub {
+	my $output = `sm -E test -p 2>&1`;
+	return ($script_contents eq $output);
+});
 
 # Write the alternate sample script to a file to test `sm -r`
 open($fh, ">", "testscript.pl") or die "Could not open file 'testscript.pl' $!";
 print $fh $other_script_contents;
 close $fh;
 
-`sm -r test -f testscript.pl 2>&1`;
+test("replace", sub {
+	system("sm -r test -f testscript.pl 2>&1");
+	my $output = `sm -E test -p 2>&1`;
+	return ($other_script_contents eq $output);
+});
 
-test("Testing replace...", ($other_script_contents eq `sm -E test -p 2>&1`));
+test("completion", sub {
+	my $output = `sm -C 2>&1`;
+	return ($output eq "test ");
+});
 
-test("Testing completion...", (`sm -C 2>&1` eq "test "));
+test("edit", sub {
+	system("sm -V test 2>&1");
+	return (!$?);
+});
 
-`sm -V test 2>&1`;
-
-test("Testing edit...", !$?);
-
-`sm -a -f notafile -n invalid -D desc 2>&1`;
-
-test("Testing no file...", $?);
+test("add non-exsistant file", sub {
+	system("sm -a -f notafile -n invalid -D desc 2>&1");
+	return ($?);
+});
 
 # Testing with Valgrind.
 # Currently only working on linux.
@@ -108,25 +125,33 @@ if ($^O eq "linux") {
 	# Reset for valgrind tests
 	rmtree $ENV{"HOME"} . "/.script-db";
 
-	system("$VALGRIND_EXEC ./sm -a -n test -f testscript.pl -D 'test file' 2>&1");
-	test("Testing add with valgrind...", (!$? && -f $ENV{"HOME"} . "/.script-db/1"));
+	test("add with valgrind", sub {
+		system("$VALGRIND_EXEC ./sm -a -n test -f testscript.pl -D 'test file' 2>&1");
+		return (!$? && -f $ENV{"HOME"} . "/.script-db/1");
+	});
 
-	system("$VALGRIND_EXEC ./sm -l -p 2>&1");
-	test("Testing list with Valgrind...", !$?);
+	test("list with Valgrind", sub {
+		system("$VALGRIND_EXEC ./sm -l -p 2>&1");
+		return (!$?);
+	});
 
-	system("$VALGRIND_EXEC ./sm -s -n te -p 2>&1");
-	test("Testing search in valgrind...", !$?);
+	test("search with Valgrind", sub {
+		system("$VALGRIND_EXEC ./sm -s -n te -p 2>&1");
+		return (!$?);
+	});
 
-	system("$VALGRIND_EXEC ./sm -E test -p 2>&1");
-	test("Testing echo in Valgrind...", !$?);
+	test("echo with Valgrind", sub {
+		system("$VALGRIND_EXEC ./sm -E test -p 2>&1");
+		return (!$?);
+	});
 }
 
 print "\n";
 
 if ($result) {
-	print "There were $result test failures.\n";
+	say "There were $result test failures.";
 } else {
-	print "All tests passed!\n";
+	say "All tests passed!";
 }
 
 exit $result;

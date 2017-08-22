@@ -82,7 +82,7 @@ make
 sudo make install
 ```
 
-Optionally, to install BASH/ZSH tab completion for script names, add the contents of `autocomplete.sh` to `~/.profile` or some other location where your shell will run it on start.
+Optionally, to install BASH/ZSH tab completion for script names, add the contents of `misc/autocomplete.sh` to `~/.profile` or some other location where your shell will run it on start.
 
 ## Compatabillity
 

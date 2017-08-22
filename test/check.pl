@@ -69,7 +69,7 @@ sub test {
 }
 
 sub t_exec {
-	say color("purple"), $_[0], color("reset");
+	say color("yellow"), $_[0], color("reset");
 	my $output = `$_[0]`;
 	say $output;
 	return ($output);

@@ -59,12 +59,12 @@ main(int argc, char *argv[])
 	if (arg_res == 1) {
 		fprintf(stderr, "Invalid arguments!\n\n");
 		print_usage();
-		exit(1);
+		return (1);
 	}
 
 	if (arg_res == 2) {
 		fprintf(stderr, "Error allocating memory!\n");
-		exit(2);
+		return (2);
 	}
 
 	init_result = init_sm();

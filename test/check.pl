@@ -58,39 +58,42 @@ close $fh;
 #  Test message (string) - ex: Testing echo...\t
 #  Test function (Subroutine) - true for pass and false for fail
 sub test {
-	say "Testing ", $_[0], "...";
+	say color("blue"), "Testing ", $_[0], "...", color("reset");
 
 	if ($_[1]->()) {
-		say "Testing ", $_[0], "... ", color("green"), "PASS", color("reset");
+		say color("blue"), "Testing ", $_[0], "... ", color("green"), "PASS", color("reset");
 	} else {
-		say "Testing ", $_[0], "... ", color("red"), "FAIL", color("reset");
+		say color("blue"), "Testing ", $_[0], "... ", color("red"), "FAIL", color("reset");
 		$result++;
 	}
 }
 
+sub t_exec {
+	say color("purple"), $_[0], color("reset");
+	my $output = `$_[0]`;
+	say $output;
+	return ($output);
+}
+
 test("add", sub {
-	system("sm -a -n test -f testscript.pl -D 'test file' 2>&1");
+	t_exec("sm -a -n test -f testscript.pl -D 'test file' 2>&1");
 	return (!$? && -f $ENV{"HOME"} . "/.script-db/1");
 });
 
 test("execute", sub {
-	my $output = `sm -e test 2>&1`;
-	return ("hello world\n" eq $output);
+	return ("hello world\n" eq t_exec("sm -e test 2>&1"));
 });
 
 test("list", sub {
-	my $output = `sm -l -p 2>&1`;
-	return ($expected_output eq $output);
+	return ($expected_output eq t_exec("sm -l -p 2>&1"));
 });
 
 test("search", sub {
-	my $output = `sm -s -n te -p 2>&1`;
-	return ($expected_output eq $output);
+	return ($expected_output eq t_exec("sm -s -n te -p 2>&1"));
 });
 
 test("echo", sub {
-	my $output = `sm -E test -p 2>&1`;
-	return ($script_contents eq $output);
+	return ($script_contents eq t_exec("sm -E test -p 2>&1"));
 });
 
 # Write the alternate sample script to a file to test `sm -r`
@@ -99,23 +102,21 @@ print $fh $other_script_contents;
 close $fh;
 
 test("replace", sub {
-	system("sm -r test -f testscript.pl 2>&1");
-	my $output = `sm -E test -p 2>&1`;
-	return ($other_script_contents eq $output);
+	t_exec("sm -r test -f testscript.pl 2>&1");
+	return ($other_script_contents eq t_exec("sm -E test -p 2>&1"));
 });
 
 test("completion", sub {
-	my $output = `sm -C 2>&1`;
-	return ($output eq "test ");
+	return (t_exec("sm -C 2>&1") eq "test ");
 });
 
 test("edit", sub {
-	system("sm -V test 2>&1");
+	t_exec("sm -V test 2>&1");
 	return (!$?);
 });
 
 test("add non-exsistant file", sub {
-	system("sm -a -f notafile -n invalid -D desc 2>&1");
+	t_exec("sm -a -f notafile -n invalid -D desc 2>&1");
 	return ($?);
 });
 
@@ -126,22 +127,22 @@ if ($^O eq "linux") {
 	rmtree $ENV{"HOME"} . "/.script-db";
 
 	test("add with valgrind", sub {
-		system("$VALGRIND_EXEC ./sm -a -n test -f testscript.pl -D 'test file' 2>&1");
+		t_exec("$VALGRIND_EXEC ./sm -a -n test -f testscript.pl -D 'test file' 2>&1");
 		return (!$? && -f $ENV{"HOME"} . "/.script-db/1");
 	});
 
 	test("list with Valgrind", sub {
-		system("$VALGRIND_EXEC ./sm -l -p 2>&1");
+		t_exec("$VALGRIND_EXEC ./sm -l -p 2>&1");
 		return (!$?);
 	});
 
 	test("search with Valgrind", sub {
-		system("$VALGRIND_EXEC ./sm -s -n te -p 2>&1");
+		t_exec("$VALGRIND_EXEC ./sm -s -n te -p 2>&1");
 		return (!$?);
 	});
 
 	test("echo with Valgrind", sub {
-		system("$VALGRIND_EXEC ./sm -E test -p 2>&1");
+		t_exec("$VALGRIND_EXEC ./sm -E test -p 2>&1");
 		return (!$?);
 	});
 }

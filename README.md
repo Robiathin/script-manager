@@ -6,9 +6,7 @@
 
 A tool for organizing and managing utility scripts. Allows for easy storage, searching, and executing of small scripts.
 
-### Maintenance note:
-
-Although this project is rarely updated, it is still maintained. Any bugs reported will be addressed as required and reasonable feature requests will also be looked at.
+This project is not often updated, but is still maintained.
 
 ## Usage
 
@@ -50,7 +48,6 @@ The output of search looks like this:
 
 ```
 $ sm -s -n te
-id: 7
 name: test
 description: stuff
 ```
@@ -94,7 +91,7 @@ Script-Manager should work on any GNU/Linux, BSD or macOS system. Script-Manager
 
 ## Contributing
 
-If you wish to contribute a feature or bug fix, please open an issue first. From the issue it will be decided if said feature should be implemented or if the bug can be verified and reproduced. This way you can avoid submiting code for a feature just to have it rejected because the feature isn't wanted. After it is decided the bug fix/feature should be added, make the code changes required and submit a pull request refferencing the issue. Having proper test cases for your pull request in `test/check.pl` would be appreciated.
+See `CONTRIBUTING.md`
 
 ## License
 

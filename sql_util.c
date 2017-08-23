@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Robert Tate <rob@rtate.se>
+ * Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -35,9 +35,8 @@ list_script_callback(void *not_used, int argc, char **argv, char **column)
 {
 	size_t i;
 
-	for (i = 0; i < argc; i++)
-		if (strcmp(column[i], "id"))
-			printf("%s: %s\n", column[i], argv[i]);
+	for (i = 1; i < argc; i++)
+		printf("%s: %s\n", column[i], argv[i]);
 
 	puts("");
 

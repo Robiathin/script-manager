@@ -14,13 +14,11 @@
 
 EXECUTABLE ?= sm
 CFLAGS = -pipe -std=c89 -O3 -Wall -Werror -D_BSD_SOURCE
-LDFLAGS = -lsqlite3 -lm
-SRCS = \
-	script-manager.c \
-	file_util.c \
-	interactive_util.c \
-	sql_util.c
+CFLAGS += $(shell pkg-config --cflags sqlite3)
+LDFLAGS = -lm -lc
+LDFLAGS += $(shell pkg-config --libs sqlite3)
 
+OBJS = $(shell ls *.c | sed 's/\.c$$/.o/')
 
 # If CC is not set, try clang if found, otherwise use gcc.
 CC ?= $(shell which clang)
@@ -28,7 +26,7 @@ ifeq ($(CC),)
 	CC = gcc
 endif
 
-.PHONY: all clean install uninstall
+.PHONY: clean install uninstall
 
 # Paging doesn't work on macOS. This will be fixed in the future (probably, assuming I get around to it).
 UNAME_S := $(shell uname -s)
@@ -36,13 +34,16 @@ ifeq ($(UNAME_S),Darwin)
 	CFLAGS += -DNO_PAGE
 endif
 
-$(EXECUTABLE): $(SRCS)
-	$(CC) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(EXECUTABLE)
+%.o: %.c
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+$(EXECUTABLE): $(OBJS)
+	$(CC) -o $(EXECUTABLE) $(OBJS) $(LDFLAGS)
 
 all: $(EXECUTABLE)
 
 clean:
-	rm -f $(EXECUTABLE)
+	rm -f $(EXECUTABLE) $(OBJS)
 
 install:
 	install -m 444 sm.1 ${prefix}/usr/share/man/man1/$(EXECUTABLE).1

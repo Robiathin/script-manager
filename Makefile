@@ -25,7 +25,7 @@ endif
 LDFLAGS = -lm -lc
 LDFLAGS += $(shell pkg-config --libs sqlite3 2>/dev/null || echo '-lsqlite3')
 
-OBJS = $(shell ls *.c | sed 's/\.c$$/.o/')
+OBJS = $(shell ls src/*.c | sed 's/\.c$$/.o/')
 
 prefix ?= /usr/local
 man_prefix ?= /usr/share
@@ -38,7 +38,7 @@ endif
 
 .PHONY: clean install uninstall
 
-%.o: %.c
+%.o: src/%.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 $(EXECUTABLE): $(OBJS)

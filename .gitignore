@@ -35,3 +35,8 @@ sm
 # Debug files
 *.dSYM/
 *.su
+
+# Generated man pages
+
+!*/*.1
+/*.1

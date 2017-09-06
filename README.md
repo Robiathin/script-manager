@@ -79,6 +79,8 @@ make
 sudo make install
 ```
 
+The install prefix (default is `/usr/local`) and the man page prefix (default `/usr/share`) can be changed by setting the enironment variables `prefix` and `man_prefix`. The executable name can be changed by setting `EXECUTABLE`.
+
 Optionally, to install BASH/ZSH tab completion for script names, add the contents of `misc/autocomplete.sh` to `~/.profile` or some other location where your shell will run it on start.
 
 ## Compatabillity

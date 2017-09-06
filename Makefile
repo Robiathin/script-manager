@@ -27,6 +27,9 @@ LDFLAGS += $(shell pkg-config --libs sqlite3 2>/dev/null || echo '-lsqlite3')
 
 OBJS = $(shell ls *.c | sed 's/\.c$$/.o/')
 
+prefix ?= /usr/local
+man_prefix ?= /usr/share
+
 # If CC is not set, try clang if found, otherwise use gcc.
 CC ?= $(shell which clang)
 ifeq ($(CC),)
@@ -40,16 +43,17 @@ endif
 
 $(EXECUTABLE): $(OBJS)
 	$(CC) -o $(EXECUTABLE) $(OBJS) $(LDFLAGS)
+	sed "s/.Nm sm/.Nm $(EXECUTABLE)/" man/sm.1 > $(EXECUTABLE).1
 
 all: $(EXECUTABLE)
 
 clean:
-	rm -f $(EXECUTABLE) $(OBJS)
+	rm -f $(EXECUTABLE) $(EXECUTABLE).1 $(OBJS)
 
 install:
-	install -m 444 sm.1 ${prefix}/usr/share/man/man1/$(EXECUTABLE).1
-	install -m 555 $(EXECUTABLE) ${prefix}/usr/local/bin/
+	install -m 444 $(EXECUTABLE).1 ${man_prefix}/man/man1/$(EXECUTABLE).1
+	install -m 555 $(EXECUTABLE) ${prefix}/bin/
 
 uninstall:
-	rm -f ${prefix}/usr/share/man/man1/$(EXECUTABLE).1
-	rm -f ${prefix}/usr/local/bin/$(EXECUTABLE)
+	rm -f ${man_prefix}/man/man1/$(EXECUTABLE).1
+	rm -f ${prefix}/bin/$(EXECUTABLE)

@@ -38,5 +38,5 @@ sm
 
 # Generated man pages
 
-!*/*.1
+!man/*
 /*.1

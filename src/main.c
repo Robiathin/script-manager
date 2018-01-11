@@ -57,16 +57,29 @@ main(int argc, char *argv[])
 {
 	int init_result, arg_res, action_res;
 
+#ifdef __OpenBSD__
+	if (pledge("stdio rpath wpath cpath flock exec"
+#ifndef NO_PAGE
+	" proc"
+#endif
+	    , NULL)) {
+		fprintf(stderr, "pledge error!\n");
+		return (-1);
+	}
+#endif
+
 	arg_res = parse_args(&args, argc, &argv);
 
 	if (arg_res == 1) {
 		fprintf(stderr, "Invalid arguments!\n\n");
 		print_usage();
+
 		return (1);
 	}
 
 	if (arg_res == 2) {
 		fprintf(stderr, "Error allocating memory!\n");
+
 		return (2);
 	}
 
@@ -164,7 +177,7 @@ init_sm(void)
 	const char *homedir;
 	char *script_db_path, *err;
 
-	homedir = getpwuid(getuid())->pw_dir;
+	homedir = getenv("HOME");
 	script_path_len = strlen(homedir) + strlen(SCRIPT_DB_DIR) + 1;
 	script_path = malloc(script_path_len);
 

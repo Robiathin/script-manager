@@ -15,7 +15,7 @@ For the full usage information read the included man page (sm.1).
 Scripts can be added with:
 
 ```sh
-sm -a -n script_name -f file_to_add -D "A helpful description for the file."
+sm -a script_name -f file_to_add -D "A helpful description for the file."
 ```
 
 This will create a copy of the script file in `.script-db/` in your home directory as well as store the name and description information in an SQLite database in that directory.

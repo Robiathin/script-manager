@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
+ * Copyright (c) 2016-2018 Robert Tate <rob@rtate.se>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,18 +14,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <stdlib.h>
-#include <getopt.h>
-
-#include "interactive_util.h"
-
-
-
-
-
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
+#include <unistd.h>
 
-
+#include "interactive.h"
 
 int
 parse_args(arg_options_t *arg_options, int argc, char **argv[])
@@ -34,23 +29,19 @@ parse_args(arg_options_t *arg_options, int argc, char **argv[])
 	int error;
 	char option;
 
+	memset(&args, 0, sizeof(arg_options_t));
 	args.mode = NOT_SET;
-	args.name = NULL;
-	args.file = NULL;
-	args.description = NULL;
 	args.page = 1;
-	args.arg_size = 0;
-	args.arguments = NULL;
-	args.remove_file = 0;
 
 	error = 0;
 
-	while ((option = getopt(argc, *argv, "ad:e:E:hkKlpPr:svV:A:n:f:D:C")) != -1) {
+	while ((option = getopt(argc, *argv, "a:d:e:E:hkKlpPr:svV:A:n:f:D:C")) != -1) {
 		switch (option) {
 		case 'a': /* ADD */
-			if (args.mode == NOT_SET)
+			if (args.mode == NOT_SET && args.name == NULL) {
 				args.mode = ADD;
-			else
+				args.name = optarg;
+			} else
 				error = 1;
 
 			break;
@@ -58,27 +49,24 @@ parse_args(arg_options_t *arg_options, int argc, char **argv[])
 			if (args.mode == NOT_SET && args.name == NULL) {
 				args.mode = DELETE;
 				args.name = optarg;
-			} else {
+			} else
 				error = 1;
-			}
 
 			break;
 		case 'e': /* EXECUTE */
 			if (args.mode == NOT_SET && args.name == NULL) {
 				args.mode = EXECUTE;
 				args.name = optarg;
-			} else {
+			} else
 				error = 1;
-			}
 
 			break;
 		case 'E': /* ECHO */
 			if (args.mode == NOT_SET && args.name == NULL) {
 				args.mode = ECHO;
 				args.name = optarg;
-			} else {
+			} else
 				error = 1;
-			}
 
 			break;
 		case 'h': /* HELP */
@@ -145,9 +133,9 @@ parse_args(arg_options_t *arg_options, int argc, char **argv[])
 			else
 				args.arguments = realloc(args.arguments, (args.arg_size + 1) * sizeof(char *));
 
-			if (args.arguments == NULL) {
+			if (args.arguments == NULL)
 				error = 2;
-			} else {
+			else {
 				args.arguments[args.arg_size] = optarg;
 				args.arg_size++;
 			}
@@ -169,11 +157,11 @@ parse_args(arg_options_t *arg_options, int argc, char **argv[])
 			if (args.mode == NOT_SET && args.name == NULL) {
 				args.mode = EDIT;
 				args.name = optarg;
-			} else {
+			} else
 				error = 1;
-			}
 
 			break;
+#ifdef WITH_AUTOCOMPLETE
 		case 'C': /* COMPLETE */
 			if (args.mode == NOT_SET)
 				args.mode = COMPLETE;
@@ -181,6 +169,7 @@ parse_args(arg_options_t *arg_options, int argc, char **argv[])
 				error = 1;
 
 			break;
+#endif /* WITH_AUTOCOMPLETE */
 		default:
 			error = 1;
 		}
@@ -243,9 +232,69 @@ validate_args(arg_options_t *args)
 	    || args->description != NULL || args->arguments != NULL))
 		return (1);
 
+#ifdef WITH_AUTOCOMPLETE
 	if (args->mode == COMPLETE && (args->name != NULL || args->file != NULL
 	    || args->description != NULL || args->arguments != NULL))
 		return (1);
+#endif /* WITH_AUTOCOMPLETE */
 
 	return (0);
+}
+
+#ifndef NO_PAGE
+
+int
+do_page(void)
+{
+        int err;
+
+        err = 0;
+
+
+        pid_t pid;
+        int p[2];
+        char *pager_args[2];
+
+        if (isatty(STDOUT_FILENO)) {
+                if (pipe(p)) {
+                        fprintf(stderr, "Error opening pipe!\n");
+                        err = 1;
+                } else if ((pid = fork()) == -1) {
+                        fprintf(stderr, "Error forking!\n");
+                        err = 1;
+                } else if (pid == 0) {
+                        close(p[0]);
+                        dup2(p[1], STDOUT_FILENO);
+                        close(p[1]);
+                } else {
+                        pager_args[0] = check_env(SM_PAGER_ENV, "PAGER", SM_DEFAULT_PAGER);
+                        pager_args[1] = NULL;
+
+                        close(p[1]);
+                        dup2(p[0], STDIN_FILENO);
+                        close(p[0]);
+
+                        execvp(pager_args[0], pager_args);
+
+                        fprintf(stderr, "Failed to execute pager!\n");
+                        exit(1);
+                }
+        }
+
+	return (err);
+}
+
+#endif /* NO_PAGE */
+
+char *
+check_env(char *primary, char *secondary, char *def)
+{
+        char *res;
+
+        res = getenv(primary);
+
+        if (!res)
+                res = getenv(secondary);
+
+        return (res ? res : def);
 }

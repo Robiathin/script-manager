@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Robert Tate <rob@rtate.se>
+ * Copyright (c) 2016-2018 Robert Tate <rob@rtate.se>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,16 +14,38 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef _SQL_UTIL_H_
-#define _SQL_UTIL_H_
+#include <stdio.h>
+#include <string.h>
 
-#define BEGIN_TRANSACTION(a) sqlite3_exec(a, "BEGIN TRANSACTION;", NULL, NULL, NULL)
-#define END_TRANSACTION(a)   sqlite3_exec(a, "END TRANSACTION;", NULL, NULL, NULL)
-#define ROLLBACK(a)          sqlite3_exec(a, "ROLLBACK;", NULL, NULL, NULL)
-#define P_ERR_SQL(a)         fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(a))
-#define P_ERR_SQL_BIND(a)    fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(a))
+#include "sql.h"
 
-int	auto_complete_list_callback(void *, int, char **, char **);
-int	list_script_callback(void *, int, char **, char **);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#endif
+#ifdef WITH_AUTOCOMPLETE
+int
+auto_complete_list_callback(void *not_used, int argc, char **argv, char **column)
+{
+	int i;
+
+	for (i = 0; i < argc; i++)
+		printf("%s ", argv[i]);
+
+	return 0;
+}
+#endif /* WITH_AUTOCOMPLETE */
+
+int
+list_script_callback(void *not_used, int argc, char **argv, char **column)
+{
+	int i;
+
+	for (i = 1; i < argc; i++)
+		printf("%s: %s\n", column[i], argv[i]);
+
+	puts("");
+
+	return 0;
+}
+
+#pragma GCC diagnostic pop

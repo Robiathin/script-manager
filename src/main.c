@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
+ * Copyright (c) 2016-2018 Robert Tate <rob@rtate.se>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -26,9 +26,11 @@
 #include <sqlite3.h>
 
 #include "file_util.h"
-#include "interactive_util.h"
-#include "sql_util.h"
-#include "script-manager.h"
+#include "interactive.h"
+#include "sql.h"
+#include "main.h"
+
+#define GET_INT_SIZE(x) ((int) floor(log10(abs(x))) + 1)
 
 static void	 exit_cleanup(void);
 static void	 print_usage(void);
@@ -42,8 +44,9 @@ static int	 replace_script(void);
 static int	 search_script(void);
 static int	 list_script(void);
 static int	 echo_script(void);
+#ifdef WITH_AUTOCOMPLETE
 static int	 auto_complete_list(void);
-static char	*check_env(char *, char *, char *);
+#endif
 
 sqlite3 *db;
 char *script_path;
@@ -109,9 +112,11 @@ main(int argc, char *argv[])
 		print_version();
 		action_res = 0;
 		break;
+#ifdef WITH_AUTOCOMPLETE
 	case COMPLETE:
 		action_res = auto_complete_list();
 		break;
+#endif /* WITH_AUTOCOMPLETE */
 	default:
 		break;
 	}
@@ -133,7 +138,7 @@ static void
 print_usage(void)
 {
 	puts("See man page for more detailed information. Usage options:\n"\
-	    "\tadd:\t\t-a -n name -D description -f file\n"\
+	    "\tadd:\t\t-a name -D description -f file\n"\
 	    "\tdelete:\t\t-d name\n"\
 	    "\texecute:\t-e name [-A arg] ...\n"\
 	    "\thelp:\t\t-h\n"\
@@ -147,7 +152,7 @@ static void
 print_version(void)
 {
 	puts("Script Manager Vesion: " SM_VERSION "\n"\
-	    "Copyright (c) 2016-2017 Robert Tate\n"\
+	    "Copyright (c) 2016-2018 Robert Tate\n"\
 	    "This software is available under the ISC license.\n");
 }
 
@@ -509,11 +514,6 @@ search_script(void)
 {
 	sqlite3_stmt *search_stmt;
 	int res, err;
-#ifndef NO_PAGE
-	pid_t pid;
-	int p[2];
-	char *pager_args[2];
-#endif
 
 	search_stmt = NULL;
 
@@ -564,39 +564,12 @@ search_script(void)
 	err = 0;
 
 #ifndef NO_PAGE
-
-	if (isatty(STDOUT_FILENO) && args.page) {
-		if (pipe(p)) {
-			fprintf(stderr, "Error opening pipe!\n");
-			err = 1;
-		} else if ((pid = fork()) == -1) {
-			fprintf(stderr, "Error forking!\n");
-			err = 1;
-		} else if (pid == 0) {
-			close(p[0]);
-			dup2(p[1], STDOUT_FILENO);
-			close(p[1]);
-		} else {
-			pager_args[0] = check_env(SM_PAGER_ENV, "PAGER", SM_DEFAULT_PAGER);
-			pager_args[1] = NULL;
-
-			close(p[1]);
-			dup2(p[0], STDIN_FILENO);
-			close(p[0]);
-
-			execvp(pager_args[0], pager_args);
-
-			fprintf(stderr, "Failed to execute pager!\n");
-			exit(1);
-		}
-	}
-
-	if (err) {
+	if (args.page && do_page()) {
 		sqlite3_finalize(search_stmt);
 		return (err);
 	}
-
 #endif /* NO_PAGE */
+
 	for (;;) {
 		res = sqlite3_step(search_stmt);
 
@@ -624,11 +597,6 @@ echo_script(void)
 	sqlite3_stmt *echo_stmt;
 	int res, script_id, script_len, err;
 	char *script;	
-#ifndef NO_PAGE
-	pid_t pid;
-	int p[2];
-	char *pager_args[2];
-#endif
 
 	echo_stmt = NULL;
 
@@ -673,37 +641,11 @@ echo_script(void)
 	err = 0;
 
 #ifndef NO_PAGE
-	if (isatty(STDOUT_FILENO) && args.page) {
-		if (pipe(p)) {
-			fprintf(stderr, "Error opening pipe!\n");
-			err = 1;
-		} else {
-			if ((pid = fork()) == -1) {
-				fprintf(stderr, "Failed to fork!\n");
-				err = 1;
-			} else if (pid == 0) {
-				close(p[0]);
-				dup2(p[1], STDOUT_FILENO);
-				close(p[1]);
-			} else {
-				pager_args[0] = check_env(SM_PAGER_ENV, "PAGER", SM_DEFAULT_PAGER);
-				pager_args[1] = NULL;
-
-				close(p[1]);
-				dup2(p[0], STDIN_FILENO);
-				close(p[0]);
-
-				execvp(pager_args[0], pager_args);
-
-				fprintf(stderr, "Failed to execute pager!\n");
-				exit(1);
-			}
-		}
-	}
-
+	if (args.page)
+		err = do_page();
 #endif /* NO_PAGE */
 
-	if (print_file(script)) {
+	if (!err && print_file(script)) {
 		fprintf(stderr, "Error opening file!\n");
 		err = 1;
 	}
@@ -780,38 +722,11 @@ list_script(void)
 	err = 0;
 
 #ifndef NO_PAGE
-	pid_t pid;
-	int p[2];
-	char *pager_args[2];
-
-	if (isatty(STDOUT_FILENO) && args.page) {
-		if (pipe(p)) {
-			fprintf(stderr, "Error opening pipe!\n");
-			err = 1;
-		} else if ((pid = fork()) == -1) {
-			fprintf(stderr, "Error forking!\n");
-			err = 1;
-		} else if (pid == 0) {
-			close(p[0]);
-			dup2(p[1], STDOUT_FILENO);
-			close(p[1]);
-		} else {
-			pager_args[0] = check_env(SM_PAGER_ENV, "PAGER", SM_DEFAULT_PAGER);
-			pager_args[1] = NULL;
-
-			close(p[1]);
-			dup2(p[0], STDIN_FILENO);
-			close(p[0]);
-
-			execvp(pager_args[0], pager_args);
-
-			fprintf(stderr, "Failed to execute pager!\n");
-			exit(1);
-		}
-	}
+	if (args.page)
+		err = do_page();
 #endif /* NO_PAGE */
 
-	if (sqlite3_exec(db, "SELECT * FROM " SCRIPT_TABLE ";", list_script_callback, 0, NULL)) {
+	if (!err && sqlite3_exec(db, "SELECT * FROM " SCRIPT_TABLE ";", list_script_callback, 0, NULL)) {
 		P_ERR_SQL(db);
 		err = 1;
 	}
@@ -819,6 +734,7 @@ list_script(void)
 	return (err);
 }
 
+#ifdef WITH_AUTOCOMPLETE
 static int
 auto_complete_list(void)
 {
@@ -830,16 +746,4 @@ auto_complete_list(void)
 
 	return (0);
 }
-
-static char *
-check_env(char *primary, char *secondary, char *def)
-{
-	char *res;
-
-	res = getenv(primary);
-
-	if (!res)
-		res = getenv(secondary);
-
-	return (res ? res : def);
-}
+#endif /* WITH_AUTOCOMPLETE */

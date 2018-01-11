@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
+# Copyright (c) 2016-2018 Robert Tate <rob@rtate.se>
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,8 +13,11 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 EXECUTABLE ?= sm
-CFLAGS = -pipe -std=c89 -O3 -Wall -Werror -D_BSD_SOURCE
+CFLAGS = -pipe -std=c89 -O3 -Wall -Werror -Wextra -D_BSD_SOURCE
 CFLAGS += $(shell pkg-config --cflags sqlite3 2>/dev/null)
+
+LDFLAGS = -lm -lc
+LDFLAGS += $(shell pkg-config --libs sqlite3 2>/dev/null || echo '-lsqlite3')
 
 # Paging doesn't work on macOS. This will be fixed in the future (probably, assuming I get around to it).
 UNAME_S := $(shell uname -s)
@@ -22,35 +25,40 @@ ifeq ($(UNAME_S),Darwin)
 	CFLAGS += -DNO_PAGE
 endif
 
-LDFLAGS = -lm -lc
-LDFLAGS += $(shell pkg-config --libs sqlite3 2>/dev/null || echo '-lsqlite3')
+ifdef NO_PAGE
+	CFLAGS += -DNO_PAGE
+endif
 
-OBJS = $(shell ls src/*.c | sed 's/\.c$$/.o/')
+ifndef WITHOUT_AUTOCOMPLETE
+	CFLAGS += -DWITH_AUTOCOMPLETE
+endif
+
+OBJS = $(shell ls src/*.c | sed -e 's/^src/obj/' -e 's/\.c$$/.o/')
 
 prefix ?= /usr/local
 man_prefix ?= /usr/share
 
-# If CC is not set, try clang if found, otherwise use gcc.
-CC ?= $(shell which clang)
-ifeq ($(CC),)
-	CC = gcc
-endif
+CC ?= clang
 
 .PHONY: clean install uninstall
 
-%.o: src/%.c
+obj/%.o: src/%.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-$(EXECUTABLE): $(OBJS)
+$(EXECUTABLE): obj $(OBJS)
 	$(CC) -o $(EXECUTABLE) $(OBJS) $(LDFLAGS)
 	sed "s/.Nm sm/.Nm $(EXECUTABLE)/" man/sm.1 > $(EXECUTABLE).1
+
+obj:
+	mkdir -p obj
 
 all: $(EXECUTABLE)
 
 clean:
 	rm -f $(EXECUTABLE) $(EXECUTABLE).1 $(OBJS)
+	rm -rf ./obj
 
-install:
+install: $(EXECUTABLE)
 	install -m 444 $(EXECUTABLE).1 ${man_prefix}/man/man1/$(EXECUTABLE).1
 	install -m 555 $(EXECUTABLE) ${prefix}/bin/
 

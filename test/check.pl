@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
+# Copyright (c) 2016-2018 Robert Tate <rob@rtate.se>
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -79,7 +79,7 @@ sub t_exec {
 }
 
 test("add", sub {
-	t_exec("sm -a -n test -f testscript.pl -D 'test file' 2>&1");
+	t_exec("sm -a test -f testscript.pl -D 'test file' 2>&1");
 	return (!$? && -f $ENV{"HOME"} . "/.script-db/1");
 });
 
@@ -119,7 +119,7 @@ test("edit", sub {
 });
 
 test("add non-exsistant file", sub {
-	t_exec("sm -a -f notafile -n invalid -D desc 2>&1");
+	t_exec("sm -a invalid -f notafile -D desc 2>&1");
 	return ($?);
 });
 
@@ -130,7 +130,7 @@ if ($^O eq "linux") {
 	rmtree $ENV{"HOME"} . "/.script-db";
 
 	test("add with valgrind", sub {
-		t_exec("$VALGRIND_EXEC ./sm -a -n test -f testscript.pl -D 'test file' 2>&1");
+		t_exec("$VALGRIND_EXEC ./sm -a test -f testscript.pl -D 'test file' 2>&1");
 		return (!$? && -f $ENV{"HOME"} . "/.script-db/1");
 	});
 

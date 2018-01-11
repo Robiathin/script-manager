@@ -1,4 +1,4 @@
-.\" Copyright (c) 2016 Robert Tate <rob@rtate.se>
+.\" Copyright (c) 2016,2018 Robert Tate <rob@rtate.se>
 .\"
 .\" Permission to use, copy, modify, and/or distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -12,14 +12,14 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 24 2016 $
+.Dd $Mdocdate: January 11 2018 $
 .Dt SM 1
 .Sh NAME
 .Nm sm
 .Nd Script-Manager
 .Sh SYNOPSIS
 .Nm
-.Op Fl a Fl n Ar name Fl D Ar description Fl f Ar file
+.Op Fl a Ar name Fl D Ar description Fl f Ar file
 .Op Fl d Ar name
 .Op Fl e Ar name Op Fl A Ar arg
 .Op Fl E Ar name
@@ -36,8 +36,8 @@
 is a program for managing and organizing utility scripts in a searchable format.
 .Pp
 The options are as follows:
-.Bl -tag -width "-a -n name -D description -f file"
-.It Fl a Fl n Ar name Fl D Ar description Fl f Ar file
+.Bl -tag -width "-a name -D description -f file"
+.It Fl a Ar name Fl D Ar description Fl f Ar file
 Add the specified file to the script database with the name and description provided.
 .It Fl d Ar name
 Delete the script with the specified name from the

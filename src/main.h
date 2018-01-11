@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Robert Tate <rob@rtate.se>
+ * Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,37 +14,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef _INERACTIVE_UTIL_H_
-#define _INERACTIVE_UTIL_H_
+#ifndef _MAIN_H_
+#define _MAIN_H_
 
-enum command_mode {
-	ADD,
-	DELETE,
-	EXECUTE,
-	ECHO,
-	EDIT,
-	HELP,
-	LIST,
-	REPLACE,
-	SEARCH,
-	VERSION,
-	COMPLETE,
-	NOT_SET
-};
+#define SM_VERSION "1.1.1"
 
-typedef struct {
-	enum command_mode mode;
-	char *name;
-	char *file;
-	char *description;
-	int page;
-	size_t arg_size;
-	char **arguments;
-	int remove_file;
-} arg_options_t;
+#define SCRIPT_DB_DIR  "/.script-db"
+#define SCRIPT_DB_FILE "/script-manager.db"
+#define SCRIPT_TABLE   "scripts"
 
-int	parse_args(arg_options_t *, int, char **[]);
-int	validate_args(arg_options_t *);
-
-
-#endif /* _INERACTIVE_UTIL_H_ */
+#endif /* _MAIN_H_ */

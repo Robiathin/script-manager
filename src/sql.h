@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Robert Tate <rob@rtate.se>
+ * Copyright (c) 2016,2018 Robert Tate <rob@rtate.se>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,20 +14,18 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef _SCRIPT_MANAGER_H_
-#define _SCRIPT_MANAGER_H_
+#ifndef _SQL_H_
+#define _SQL_H_
 
-#define SM_VERSION "1.1.1"
+#define BEGIN_TRANSACTION(a) sqlite3_exec(a, "BEGIN TRANSACTION;", NULL, NULL, NULL)
+#define END_TRANSACTION(a)   sqlite3_exec(a, "END TRANSACTION;", NULL, NULL, NULL)
+#define ROLLBACK(a)          sqlite3_exec(a, "ROLLBACK;", NULL, NULL, NULL)
+#define P_ERR_SQL(a)         fprintf(stderr, "SQLite error: %s\n", sqlite3_errmsg(a))
+#define P_ERR_SQL_BIND(a)    fprintf(stderr, "SQLite bind error: %s\n", sqlite3_errmsg(a))
 
-#define SCRIPT_DB_DIR  "/.script-db"
-#define SCRIPT_DB_FILE "/script-manager.db"
-#define SCRIPT_TABLE   "scripts"
+#ifdef WITH_AUTOCOMPLETE
+int	auto_complete_list_callback(void *, int, char **, char **);
+#endif
+int	list_script_callback(void *, int, char **, char **);
 
-#define SM_DEFAULT_EDITOR  "vi"
-#define SM_DEFAULT_PAGER   "less"
-#define SM_EDITOR_ENV      "SMEDITOR"
-#define SM_PAGER_ENV       "SMPAGER"
-
-#define GET_INT_SIZE(x) ((int) floor(log10(abs(x))) + 1)
-
-#endif /* _SCRIPT_MANAGER_H_ */
+#endif /* _SQL_H_ */

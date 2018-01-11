@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 	int init_result, arg_res, action_res;
 
 #ifdef __OpenBSD__
-	if (pledge("stdio rpath wpath cpath flock exec"
+	if (pledge("stdio rpath wpath cpath flock exec fattr"
 #ifndef NO_PAGE
 	" proc"
 #endif

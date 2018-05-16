@@ -55,7 +55,7 @@ arg_options_t args;
 int
 main(int argc, char *argv[])
 {
-	int init_result, arg_res, action_res;
+	int err;
 
 #ifdef __OpenBSD__
 	if (pledge("stdio rpath wpath cpath flock exec fattr"
@@ -64,79 +64,77 @@ main(int argc, char *argv[])
 #endif
 	    , NULL)) {
 		fprintf(stderr, "pledge error!\n");
-		return (-1);
+		err = -1;
+		goto end_noclean;
 	}
 #endif
 
-	arg_res = parse_args(&args, argc, &argv);
+	err = parse_args(&args, argc, &argv);
 
-	if (arg_res == 1) {
+	if (err == 1) {
 		fprintf(stderr, "Invalid arguments!\n\n");
 		print_usage();
 
-		return (1);
+		goto end_noclean;
 	}
 
-	if (arg_res == 2) {
+	if (err == 2) {
 		fprintf(stderr, "Error allocating memory!\n");
 
-		return (2);
+		goto end_noclean;
 	}
 
-	init_result = init_sm();
+	err = init_sm();
 
-	if (init_result) {
-		exit_cleanup();
-		return (init_result);
-	}
-
-	action_res = 1;
+	if (err)
+		goto end;
 
 	switch (args.mode) {
 	case ADD:
-		action_res = add_script();
+		err = add_script();
 		break;
 	case DELETE:
-		action_res = delete_script();
+		err = delete_script();
 		break;
 	case EXECUTE:
-		action_res = execute_script();
+		err = execute_script();
 		break;
 	case ECHO:
-		action_res = echo_script();
+		err = echo_script();
 		break;
 	case EDIT:
-		action_res = edit_script();
+		err = edit_script();
 		break;
 	case LIST:
-		action_res = list_script();
+		err = list_script();
 		break;
 	case REPLACE:
-		action_res = replace_script();
+		err = replace_script();
 		break;
 	case SEARCH:
-		action_res = search_script();
+		err = search_script();
 		break;
 	case HELP:
 		print_usage();
-		action_res = 0;
+		err = 0;
 		break;
 	case VERSION:
 		print_version();
-		action_res = 0;
+		err = 0;
 		break;
 #ifdef WITH_AUTOCOMPLETE
 	case COMPLETE:
-		action_res = auto_complete_list();
+		err = auto_complete_list();
 		break;
 #endif /* WITH_AUTOCOMPLETE */
 	default:
 		break;
 	}
 
+end:
 	exit_cleanup();
-
-	return (action_res);
+end_noclean:
+	return (err);
 }
 
 static void

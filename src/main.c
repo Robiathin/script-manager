@@ -162,7 +162,7 @@ print_usage(void)
 static void
 print_version(void)
 {
-	puts("Script Manager Vesion: " SM_VERSION "\n"\
+	puts("Script Manager Version: " SM_VERSION "\n"\
 	    "Copyright (c) 2016-2018 Robert Tate\n"\
 	    "This software is available under the ISC license.\n");
 }

@@ -84,6 +84,15 @@ main(int argc, char *argv[])
 		goto end_noclean;
 	}
 
+	if (args.mode == HELP) {
+		print_usage();
+		return (0);
+	}
+	if (args.mode == VERSION) {
+		print_version();
+		return (0);
+	}
+
 	err = init_sm();
 
 	if (err)
@@ -113,14 +122,6 @@ main(int argc, char *argv[])
 		break;
 	case SEARCH:
 		err = search_script();
-		break;
-	case HELP:
-		print_usage();
-		err = 0;
-		break;
-	case VERSION:
-		print_version();
-		err = 0;
 		break;
 #ifdef WITH_AUTOCOMPLETE
 	case COMPLETE:
